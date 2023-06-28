@@ -1,9 +1,11 @@
-#include <SDL2/SDL.h>
+#pragma once
+
 #include <stdint.h>
 
 struct PPoint
 {
-    int32_t x, y;
+    int32_t x, y, z;
+    float* out_data;
 };
 
 struct PLine
