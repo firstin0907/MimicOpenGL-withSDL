@@ -12,7 +12,7 @@ int color_buffer[1920 * 1080];
 
 void appendFragment(Fragment* fragment, int pitch)
 {
-    const int index = fragment->x * pitch + fragment->y;
+    const int index = fragment->x + fragment->y * pitch;
     if(z_buffer[index] > fragment->z)
     {
         z_buffer[index] = fragment->z;

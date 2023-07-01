@@ -4,18 +4,18 @@
 #include "src/include/SDL2/SDL.h"
 #include "mimic/include/mimicMath.hh"
 
-const int WINDOW_WIDTH = 800, WINDOW_HEIGHT = 600;
+const int WINDOW_WIDTH = 600, WINDOW_HEIGHT = 600;
 
 mmath::Mat4x4<float> M;
-void vertex_shader(float* attr[], mmath::Vec3<int>* pos, float out[])
+mmath::Mat4x4<float> MVP;
+void vertex_shader(float* attr[], mmath::Vec4<float>* pos, float out[])
 {
+	// Get attributes of vertex from VBO.
 	auto position = reinterpret_cast<mmath::Vec3<float>*>(attr[0]);
 	auto color = reinterpret_cast<mmath::Vec3<float>*>(attr[1]);
 
 	mmath::Vec4<float> p(*position, 1);
-	p = M * p;
-
-	*pos = mmath::Vec3<float>(p);
+	*pos = MVP * p;
 
 	out[0] = attr[1][0];
 	out[1] = attr[1][1];
@@ -28,12 +28,63 @@ int main(int argc, char* argv[])
 
 	float triangle[] =
 	{
-		30, 30, 0, 1, 0, 0,
-		30, 200, 0, 0, 1, 0,
-		200, 30, 0, 0, 0, 1, 
-		30, 60, 0, 1, 0, 0,
-		30, 240, 0, 0, 1, 0,
-		200, 560, 0, 0, 0, 1, 
+		0, 0, 0, 1, 0, 0,
+		0.3, 0, 0.3, 0, 1, 0,
+		0.3, 0, -.3, 0, 0, 1, 
+		-10, 0, 0, 1, 0, 0,
+		10, 0, 0, 1, 0, 0,
+		0, 0, -10, 0, 1, 0,
+		0, 0, 10, 0, 1, 0,
+		0, 0, 0, 0, 0, 1,
+		0, 1, 0, 0, 0, 1,
+		
+		-0.5 ,  0.5 ,  0.5 ,  1, 1, 1, // v0
+         0.5 , -0.5 ,  0.5 ,  1, 1, 1, // v2
+         0.5 ,  0.5 ,  0.5 ,  1, 1, 1, // v1
+                    
+        -0.5 ,  0.5 ,  0.5 ,  1, 1, 1, // v0
+        -0.5 , -0.5 ,  0.5 ,  1, 1, 1, // v3
+         0.5 , -0.5 ,  0.5 ,  1, 1, 1, // v2
+                    
+        -0.5 ,  0.5 , -0.5 ,  1, 1, 1, // v4
+         0.5 ,  0.5 , -0.5 ,  1, 1, 1, // v5
+         0.5 , -0.5 , -0.5 ,  1, 1, 1, // v6
+                    
+        -0.5 ,  0.5 , -0.5 ,  1, 1, 1, // v4
+         0.5 , -0.5 , -0.5 ,  1, 1, 1, // v6
+        -0.5 , -0.5 , -0.5 ,  1, 1, 1, // v7
+                    
+        -0.5 ,  0.5 ,  0.5 ,  1, 1, 1, // v0
+         0.5 ,  0.5 ,  0.5 ,  1, 1, 1, // v1
+         0.5 ,  0.5 , -0.5 ,  1, 1, 1, // v5
+                    
+        -0.5 ,  0.5 ,  0.5 ,  1, 1, 1, // v0
+         0.5 ,  0.5 , -0.5 ,  1, 1, 1, // v5
+        -0.5 ,  0.5 , -0.5 ,  1, 1, 1, // v4
+ 
+        -0.5 , -0.5 ,  0.5 ,  1, 1, 1, // v3
+         0.5 , -0.5 , -0.5 ,  1, 1, 1, // v6
+         0.5 , -0.5 ,  0.5 ,  1, 1, 1, // v2
+                    
+        -0.5 , -0.5 ,  0.5 ,  1, 1, 1, // v3
+        -0.5 , -0.5 , -0.5 ,  1, 1, 1, // v7
+         0.5 , -0.5 , -0.5 ,  1, 1, 1, // v6
+                    
+         0.5 ,  0.5 ,  0.5 ,  1, 1, 1, // v1
+         0.5 , -0.5 ,  0.5 ,  1, 1, 1, // v2
+         0.5 , -0.5 , -0.5 ,  1, 1, 1, // v6
+                    
+         0.5 ,  0.5 ,  0.5 ,  1, 1, 1, // v1
+         0.5 , -0.5 , -0.5 ,  1, 1, 1, // v6
+         0.5 ,  0.5 , -0.5 ,  1, 1, 1, // v5
+                    
+        -0.5 ,  0.5 ,  0.5 ,  1, 1, 1, // v0
+        -0.5 , -0.5 , -0.5 ,  1, 1, 1, // v7
+        -0.5 , -0.5 ,  0.5 ,  1, 1, 1, // v3
+                    
+        -0.5 ,  0.5 ,  0.5 ,  1, 1, 1, // v0
+        -0.5 ,  0.5 , -0.5 ,  1, 1, 1, // v4
+        -0.5 , -0.5 , -0.5 ,  1, 1, 1, // v7		
 	};
 
 	struct VAO* vao = generateVertexArray();
@@ -42,17 +93,20 @@ int main(int argc, char* argv[])
 	struct VBO* vbo = generateBuffer();
 	bindBuffer(vbo);
 
-	copyIntoBufferData(36, triangle);
+	copyIntoBufferData(300, triangle);
 	setVaoPointer(0, 3, 6, 0);
 	setVaoPointer(1, 3, 6, 3);
-
-	M = mmath::translate(mmath::Vec3<float>(SDL_GetTicks() / 10, 100, 0));
 
 	set_vertex_shader(vertex_shader);
 
 
     SDL_Event event;
     bool running = true;
+	bool mouse_down = false;
+	int pmx, pmy;
+	int mouse_x, mouse_y;
+
+	mmath::Vec3<float> b_pos = {0, 0, 0};
     while(running)
     {
         while (SDL_PollEvent(&event)) {
@@ -65,6 +119,13 @@ int main(int argc, char* argv[])
 				if (event.key.keysym.scancode == SDL_SCANCODE_S) {
 					running = false;
 				}
+				
+				if (event.key.keysym.scancode == SDL_SCANCODE_LEFT) {
+					b_pos[0] -= 0.5;
+				}
+				if (event.key.keysym.scancode == SDL_SCANCODE_RIGHT) {
+					b_pos[0] += 0.5;
+				}
 				break;
 
 			case SDL_KEYUP:
@@ -74,14 +135,44 @@ int main(int argc, char* argv[])
 
 			case SDL_MOUSEBUTTONDOWN:
 				if (event.button.button == SDL_BUTTON_LEFT) {
+					mouse_down = true;
+					SDL_GetRelativeMouseState(&pmx, &pmy);
+				}
+				break;
+
+			case SDL_MOUSEBUTTONUP:
+				if (event.button.button == SDL_BUTTON_LEFT) {
+					mouse_down = false;
 				}
 				break;
 			}
 		}
-		M = mmath::translate(mmath::Vec3<float>(SDL_GetTicks() / 100, 100, 0))
-			* mmath::scale(mmath::Vec3<float>(SDL_GetTicks() / 100, SDL_GetTicks() / 100, 1));
+
+		double t = SDL_GetTicks() / 1000.0; // mmath::PI * 10; //
+		M = mmath::translate(mmath::Vec3<float>{0, 0, 0});
+		mmath::Mat4x4<float> V = mmath::lookat({5 * (float)cos(t / 10), 5, 5 * (float)sin(t / 10)}, {0, 0, 0}, {0, 1, 0});
+		mmath::Mat4x4<float> P = mmath::perspective(45, 1, 1, 10);//mmath::ortho(-3, 3, -3, 3, -3, 3);
+
+		MVP = P * V * M;
+
+		// std::cout << M << std::endl;
+		// std::cout << V << std::endl;
+		// std::cout << P << std::endl;
+		// std::cout << MVP << std::endl;
+
+	//	M = mmath::translate(mmath::Vec3<float>(SDL_GetTicks() / 100, 100, 0))
+	//		* mmath::scale(mmath::Vec3<float>(1 + SDL_GetTicks() / 10000.0, 1 + SDL_GetTicks() / 10000.0, 1));
+
+	//	M = mmath::translate(mmath::Vec3<float>(400, 100, 0)) *
+	//	mmath::rotate(mmath::Vec3<float>(0, 0, 1), SDL_GetTicks() / 300.0);
 		
-		DrawArrays(0, 6, DRAW_LINE_STRIP);
+		DrawArrays(0, 3, DRAW_LINE_LOOP);
+		DrawArrays(3, 6, DRAW_LINES);
+		
+		M = mmath::translate(mmath::Vec3<float>{b_pos[0], 3 * (float)cos(t), 0});
+		MVP = P * V * M;
+
+		DrawArrays(9, 36, DRAW_LINE_LOOP);
 		DrawFrame();
     }
 

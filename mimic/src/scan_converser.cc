@@ -40,11 +40,16 @@ void draw_line_with_dda(PLine line, int data_length,
         one.x = x, one.y = y;
         one.z = p1_potion * line.p1.z + p2_potion * line.p2.z;
 
+        x += x_inc;
+        y += y_inc;
+
+        if(one.x < 0 || one.y < 0 || one.z < 0) continue;
+        if(one.x > context.window_w || one.y > context.window_h) continue;
+
+
         call_fragment_shader(&one);
         
         fragments->push_back(one);
-        x += x_inc;
-        y += y_inc;
     }
 }
 

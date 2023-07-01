@@ -21,7 +21,7 @@ struct Context
     std::vector<struct VAO*> vaos;
     std::vector<struct VBO*> vbos;
 
-    void (*vertex_shader)(float*[], mmath::Vec3<int>*, float[]);
+    void (*vertex_shader)(float*[], mmath::Vec4<float>*, float[]);
 
     int window_w, window_h;
 };
