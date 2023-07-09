@@ -32,10 +32,10 @@ int main(int argc, char* argv[])
 		0.3, 0, 0.3, 0, 1, 0,
 		0.3, 0, -.3, 0, 0, 1, 
 		-10, 0, 0, 1, 0, 0,
-		10, 0, 0, 1, 0, 0,
+		10, 0, 0, 0, 0, 1,
 		0, 0, -10, 0, 1, 0,
 		0, 0, 10, 0, 1, 0,
-		0, 0, 0, 0, 0, 1,
+		0, 0, 0, 0, 0, 1, 
 		0, 1, 0, 0, 0, 1,
 		
 		-0.5 ,  0.5 ,  0.5 ,  1, 1, 1, // v0
@@ -106,6 +106,7 @@ int main(int argc, char* argv[])
 	int pmx, pmy;
 	int mouse_x, mouse_y;
 
+	float camera_h = 5;
 	mmath::Vec3<float> b_pos = {0, 0, 0};
     while(running)
     {
@@ -116,15 +117,18 @@ int main(int argc, char* argv[])
 				break;
 
 			case SDL_KEYDOWN:
-				if (event.key.keysym.scancode == SDL_SCANCODE_S) {
-					running = false;
-				}
-				
-				if (event.key.keysym.scancode == SDL_SCANCODE_LEFT) {
-					b_pos[0] -= 0.5;
-				}
-				if (event.key.keysym.scancode == SDL_SCANCODE_RIGHT) {
-					b_pos[0] += 0.5;
+				switch(event.key.keysym.scancode)
+				{
+				case SDL_SCANCODE_S:
+					running = false; break;
+				case SDL_SCANCODE_LEFT:
+					b_pos[0] -= 0.5; break;
+				case SDL_SCANCODE_RIGHT:
+					b_pos[0] += 0.5; break;
+				case SDL_SCANCODE_UP:
+					camera_h += 0.5; break;
+				case SDL_SCANCODE_DOWN:
+					camera_h -= 0.5; break;
 				}
 				break;
 
@@ -148,10 +152,13 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		double t = SDL_GetTicks() / 1000.0; // mmath::PI * 10; //
+		double t = SDL_GetTicks() / 500.0;
 		M = mmath::translate(mmath::Vec3<float>{0, 0, 0});
-		mmath::Mat4x4<float> V = mmath::lookat({5 * (float)cos(t / 10), 5, 5 * (float)sin(t / 10)}, {0, 0, 0}, {0, 1, 0});
-		mmath::Mat4x4<float> P = mmath::perspective(45, 1, 1, 10);//mmath::ortho(-3, 3, -3, 3, -3, 3);
+		mmath::Mat4x4<float> V = mmath::lookat({5 * (float)cos(t / 10),
+			camera_h, 5 * (float)sin(t / 10)}, {0, 0, 0}, {0, 1, 0});
+		//mmath::Mat4x4<float> V = mmath::lookat({0, 5, 0}, {0, 0, 0}, {(float)cos(t / 10), 0, (float)sin(t / 10)});
+		mmath::Mat4x4<float> P = mmath::perspective(45, 1, 1, 10);
+		//mmath::Mat4x4<float> P = mmath::ortho(-3, 3, -3, 3, -3, 3); 
 
 		MVP = P * V * M;
 
@@ -160,19 +167,19 @@ int main(int argc, char* argv[])
 		// std::cout << P << std::endl;
 		// std::cout << MVP << std::endl;
 
-	//	M = mmath::translate(mmath::Vec3<float>(SDL_GetTicks() / 100, 100, 0))
-	//		* mmath::scale(mmath::Vec3<float>(1 + SDL_GetTicks() / 10000.0, 1 + SDL_GetTicks() / 10000.0, 1));
+		M = mmath::translate(mmath::Vec3<float>(SDL_GetTicks() / 100, 100, 0))
+			* mmath::scale(mmath::Vec3<float>(1 + SDL_GetTicks() / 10000.0, 1 + SDL_GetTicks() / 10000.0, 1));
 
-	//	M = mmath::translate(mmath::Vec3<float>(400, 100, 0)) *
-	//	mmath::rotate(mmath::Vec3<float>(0, 0, 1), SDL_GetTicks() / 300.0);
+		M = mmath::translate(mmath::Vec3<float>(400, 100, 0)) *
+		mmath::rotate(mmath::Vec3<float>(0, 0, 1), SDL_GetTicks() / 300.0);
 		
-		DrawArrays(0, 3, DRAW_LINE_LOOP);
+		//DrawArrays(0, 3, DRAW_LINES);
 		DrawArrays(3, 6, DRAW_LINES);
 		
 		M = mmath::translate(mmath::Vec3<float>{b_pos[0], 3 * (float)cos(t), 0});
 		MVP = P * V * M;
 
-		DrawArrays(9, 36, DRAW_LINE_LOOP);
+		DrawArrays(9, 36, DRAW_TRIANGLES_FRAME);
 		DrawFrame();
     }
 

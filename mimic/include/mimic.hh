@@ -1,14 +1,21 @@
 #pragma once
+#include <stdint.h>
 #include "mimicMath.hh"
-#define DRAW_POINTS     0
-#define DRAW_LINES      1
-#define DRAW_LINE_STRIP 2
-#define DRAW_LINE_LOOP  3
-#define DRAW_TRIANGLES  4
+
+enum DrawingType
+{
+    DRAW_POINTS,
+    DRAW_LINES,
+    DRAW_LINE_STRIP,
+    DRAW_LINE_LOOP,
+    DRAW_TRIANGLES,
+    DRAW_TRIANGLES_FRAME
+};
 
 // mimic.cc
 extern int StartMimicGL(int window_w, int window_h);
-extern void DrawArrays(int start, int number, int type);
+extern void DrawArrays(const uint32_t start, const uint32_t number,
+    DrawingType type);
 extern int DrawFrame();
 extern int TerminateMimicGL();
 

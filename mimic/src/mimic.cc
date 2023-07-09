@@ -15,7 +15,7 @@ int StartMimicGL(int window_w, int window_h)
 
     if(context.window == nullptr) return -1;
 
-    context.renderer = SDL_CreateRenderer(context.window, -1, 0);
+    context.renderer = SDL_CreateRenderer(context.window, -1, SDL_RENDERER_ACCELERATED);
 
     context.texture = SDL_CreateTexture(context.renderer,
         SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
@@ -29,53 +29,76 @@ int StartMimicGL(int window_w, int window_h)
 
 std::vector<Fragment> fr;
 
-void DrawArrays(int start, int number, int type)
+void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
 {
     auto& vao_table = context.binded_vao->vao_table;
 
     switch(type)
     {
-    case DRAW_POINTS:
-
-    case DRAW_LINES: // Line    
+        case DRAW_LINES:
         // Vertex Processing & Primitive Processing
         for(int i = start; i + 1 < start + number; i += 2)
         {
-            PLine line;
-            line.p1 = call_vertex_shader(i);
-            line.p2 = call_vertex_shader(i + 1);
-            
+            VertexShaderOutput p1 = call_vertex_shader(i);
+            VertexShaderOutput p2 = call_vertex_shader(i + 1);
+
+            // Clipping with respect to x, y, z coordinate.
+            clipping_line(p1, p2, 3);
+
             // Scan Conversion & Fragment Processing
-            draw_line_with_dda(line, 3, &fr);
-        }
-        break;
-        
-    case DRAW_LINE_STRIP: // Line    
-        // Vertex Processing & Primitive Processing
-        for(int i = start; i < start + number - 1; i++)
-        {
-            PLine line;
-            line.p1 = call_vertex_shader(i);
-            line.p2 = call_vertex_shader(i + 1);
-            
-            // Scan Conversion & Fragment Processing
-            draw_line_with_dda(line, 3, &fr);
+            draw_line_with_dda(p1, p2, 3, &fr);
         }
         break;
     
-    case DRAW_LINE_LOOP:
-        for(int i = start; i <= start + number - 1; i++)
+
+        case DRAW_LINE_LOOP:
         {
-            PLine line;
-            line.p1 = call_vertex_shader(i);
-            if(i == start + number - 1) line.p2 = call_vertex_shader(start);
-            else line.p2 = call_vertex_shader(i + 1);
+            // Draw line linking between first vertex and last vertex.
+            VertexShaderOutput p1 = call_vertex_shader(start);
+            VertexShaderOutput p2 = call_vertex_shader(start + number - 1);
+
+            // Clipping with respect to x, y, z coordinate.
+            if(clipping_line(p1, p2, 3))
+            {
+                // Scan Conversion & Fragment Processing
+                draw_line_with_dda(p1, p2, 3, &fr);
+            }
             
-            // Scan Conversion & Fragment Processing
-            draw_line_with_dda(line, 3, &fr);
+            // And work like DRAW_LINE_STRIP
         }
-        break;
-        
+
+        case DRAW_LINE_STRIP:
+        {
+            // Ignore the given number is small.
+            if(number <= 1) break;
+
+            VertexShaderOutput odd_vertex, even_vertex;
+
+            if(start % 2 == 0) even_vertex = call_vertex_shader(start);
+            else odd_vertex = call_vertex_shader(start);
+
+            // Vertex Processing & Primitive Processing
+            for(int i = start + 1; i < start + number; i++)
+            {
+                // Reuse previously calculated output,
+                // only calculate new one vertex.
+
+                if(i % 2 == 0) even_vertex = call_vertex_shader(i);
+                else odd_vertex = call_vertex_shader(i);
+                
+                // Clipping with respect to x, y, z coordinate.
+                if(!clipping_line(even_vertex, odd_vertex, 3)) continue;
+
+                // Scan Conversion & Fragment Processing
+                draw_line_with_dda(even_vertex, odd_vertex, 3, &fr);
+            }
+            break;
+        }
+
+        case DRAW_TRIANGLES_FRAME:
+        {
+            
+        }
     }
 }
 

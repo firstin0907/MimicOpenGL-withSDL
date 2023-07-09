@@ -45,14 +45,24 @@ struct VBO
     float* object;
 };
 
+struct VertexShaderOutput
+{
+    mmath::Vec4<float> pos;
+    float* data;
+};
+
 // vertex_processer.cc
-extern PPoint call_vertex_shader(int vertex_number);
+extern VertexShaderOutput call_vertex_shader(int vertex_number);
 
 // per_sample_operator.cc
-extern int perSampleOperation(Context* context, std::vector<Fragment>* fragments);
+extern int perSampleOperation(Context* context,
+    std::vector<Fragment>* fragments);
 
 // scan_converser.cc
-extern void draw_line_with_dda(PLine line, int data_length,
+bool clipping_line(VertexShaderOutput& p1, VertexShaderOutput& p2,
+    int data_size);
+void draw_line_with_dda(const VertexShaderOutput& p1,
+    const VertexShaderOutput& p2, int data_length,
     std::vector<Fragment>* fragments);
 
 // fragment_processor.cc

@@ -12,7 +12,7 @@ void set_vertex_shader(void (*vertex_shader)(float*[], mmath::Vec4<float>*, floa
     context.vertex_shader = vertex_shader;
 }
 
-PPoint call_vertex_shader(int vertex_number)
+VertexShaderOutput call_vertex_shader(int vertex_number)
 {
     data_cnt += 4;
     if(data_cnt >= 20) data_cnt = 0;
@@ -24,11 +24,12 @@ PPoint call_vertex_shader(int vertex_number)
     {
         vbo_pointer[i] = vao_table[i].pointer + vao_table[i].stride * vertex_number;
     }
-    
+
     context.vertex_shader(vbo_pointer, &pos, data + data_cnt);
-    
-    if(pos[3] < 0.001f) pos = {0, 0, 0, 1};
-    pos = pos / pos[3];
+    // naive
+    if(pos[3] < 0.001f) {
+        pos[3] = 0.001f;
+    }
     
     mmath::Mat4x4<float> Tvp =
     {
@@ -37,8 +38,12 @@ PPoint call_vertex_shader(int vertex_number)
         0, 0, 0.5f, 0.5f,
         0, 0, 0, 1.0f
     };
+    pos = Tvp * pos;
     
-    pos = Tvp * mmath::Vec4<float>(pos, 1.0f);
+    pos[3] = 1 / pos[3];
+    pos[0] *= pos[3];
+    pos[1] *= pos[3];
+    pos[2] *= pos[3];
 
-    return PPoint{(int)round(pos[0]), (int)round(pos[1]), (int)round(pos[2]), data + data_cnt};
+    return {pos, data + data_cnt};
 }
