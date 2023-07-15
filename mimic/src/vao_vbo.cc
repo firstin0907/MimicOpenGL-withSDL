@@ -13,9 +13,9 @@ void bindBuffer(VBO* vbo)
 }
 
 // glBufferData in OpenGL
-void copyIntoBufferData(int size, float* data)
+void copyIntoBufferData(int size, double* data)
 {
-    context.binded_vbo->object = new float[size];
+    context.binded_vbo->object = new double[size];
     for(int i = 0; i < size; i++)
     {
         context.binded_vbo->object[i] = data[i];
@@ -23,6 +23,7 @@ void copyIntoBufferData(int size, float* data)
 }
 
 // glVertexAttribPointer in OpenGL
+// Must be called after buffer data copied (by copyIntoBufferData function).
 void setVaoPointer(int index, int size, int stride, int offset)
 {
     auto& entry = context.binded_vao->vao_table[index];
@@ -32,6 +33,7 @@ void setVaoPointer(int index, int size, int stride, int offset)
     entry.pointer = context.binded_vbo->object + offset;
 }
 
+// Create VAO and returns created VAO's address.
 VAO* generateVertexArray()
 {
     VAO* vao = new VAO();
@@ -39,14 +41,13 @@ VAO* generateVertexArray()
     return vao;
 }
 
-
+// Create VBO and returns created VBO's address.
 VBO* generateBuffer()
 {
     VBO* vbo = new VBO();
     context.vbos.push_back(vbo);
     return vbo;
 }
-
 
 VBO* deleteBuffer(VBO* vbo)
 {

@@ -4,10 +4,19 @@
 #include <cmath>
 #include <iostream>
 
-
 namespace mmath
 {
-    constexpr float PI = 3.14159265359f;
+    constexpr double PI = 3.14159265359f;
+
+    template <typename ElementType>
+    struct Vec2
+    {
+        ElementType x, y;
+
+        Vec2() : x(0), y(0) {};
+        Vec2(ElementType x) : x(x), y(x) {};
+        Vec2(ElementType x, ElementType y) : x(x), y(y) {};
+    };
     
     template <typename ElementType>
     struct Vec3
@@ -15,11 +24,11 @@ namespace mmath
         ElementType x, y, z;
 
         ElementType L2Norm() const { return x * x + y * y + z * z; }
-        float length() const { return (float)sqrt((double)L2Norm()); }
+        double length() const { return (double)sqrt((double)L2Norm()); }
 
-        Vec3<float> normalize() const
+        Vec3<double> normalize() const
         {
-            float len = length();
+            double len = length();
             return {x / len, y / len, z / len};
         }
 
@@ -27,31 +36,15 @@ namespace mmath
         {
             switch(index)
             {
-                case 0: return x;
-                case 1: return y;
-                case 2: return z;
+                case 0: return x; case 1: return y; case 2: return z;
             }
         }
         constexpr const ElementType& operator[](const int index) const
-        { 
+        {
             switch(index)
             {
-                case 0: return x;
-                case 1: return y;
-                case 2: return z;
+                case 0: return x; case 1: return y; case 2: return z;
             }
-        }
-
-        template <typename T>
-        Vec3<ElementType> operator-(const Vec3<T>& rhs) const
-        {
-            return {x - rhs.x, y - rhs.y, z - rhs.z};   
-        }
-
-        template <typename T>
-        Vec3<ElementType> operator*(const T rhs) const
-        {
-            return {x * rhs, y * rhs, z * rhs};   
         }
 
         template <typename T>
@@ -71,78 +64,111 @@ namespace mmath
     template <typename ElementType>
     struct Vec4
     {
-        ElementType elems[4];
+        ElementType x, y, z, w;
         
-        ElementType& operator[](const int index) { return elems[index]; }
-        const ElementType& operator[](const int index) const { return elems[index]; }
-
-        template <typename T>
-        Vec4<ElementType> operator+(const Vec4<T>& rhs) const
+        constexpr ElementType& operator[](const int index)
         {
-            return {elems[0] + rhs[0], elems[1] + rhs[1], elems[2] + rhs[2], elems[3] + rhs[3]};   
+            switch(index)
+            {
+                case 0: return x;   case 1: return y;
+                case 2: return z;   case 3: return w;
+
+            }
         }
-
-        template <typename T>
-        Vec4<ElementType> operator-(const Vec4<T>& rhs) const
+        constexpr const ElementType& operator[](const int index) const
         {
-            return {elems[0] - rhs[0], elems[1] - rhs[1], elems[2] - rhs[2], elems[3] - rhs[3]};   
-        }
-
-        template <typename T>
-        Vec4<ElementType> operator*(const T rhs) const
-        {
-            return {elems[0] * rhs, elems[1] * rhs, elems[2] * rhs, elems[3] * rhs};   
+            switch(index)
+            {
+                case 0: return x;   case 1: return y;
+                case 2: return z;   case 3: return w;
+            }
         }
 
         template <typename T>
         Vec4<ElementType> operator/(const T rhs) const
         {
-            return {elems[0] / rhs, elems[1] / rhs, elems[2] / rhs, elems[3] / rhs};   
+            return {x / rhs, y / rhs, z / rhs, w / rhs};   
         }
 
+        template <typename T>
+        operator Vec3<T>() { return Vec3<T>(x, y, z); }
 
         template <typename T>
-        operator Vec3<T>() { return Vec3<T>(elems[0], elems[1], elems[2]); }
+        operator Vec4<T>() { return Vec4<T>(x, y, z, w); }
 
-        template <typename T>
-        operator Vec4<T>() { return Vec4<T>(elems[0], elems[1], elems[2], elems[3]); }
-
-        Vec4() : elems{ 0, 0, 0, 0 } {};
-        Vec4(ElementType x) : elems{x, x, x, x} {};
-        Vec4(Vec3<ElementType> v, ElementType a) : elems{ v[0], v[1], v[2], a } {};
-        Vec4(ElementType x, ElementType y, ElementType z = 0, ElementType a = 0) : elems{ x, y, z, a } {};
+        Vec4() : x(0), y(0), z(0), w(0) {};
+        Vec4(ElementType x) : x(x),  y(x), z(x), w(x) {};
+        Vec4(Vec3<ElementType> v, ElementType w = 0)
+            : x(v.x), y(v.y), z(v.z), w(w) {};
+        Vec4(ElementType x, ElementType y, ElementType z = 0, ElementType w = 0)
+            : x(x), y(y), z(z), w(w) {};
     };
 
     template <typename ElementType>
     struct Mat3x3
     {
-        Vec3<ElementType> vecs[3];
+        Vec3<ElementType> v[3];
 
-        Vec3<ElementType>& operator[](const int index) { return vecs[index]; }
-        const Vec3<ElementType>& operator[](const int index) const { return vecs[index]; }
+        Vec3<ElementType>& operator[](const int index) { return v[index]; }
+        const Vec3<ElementType>& operator[](const int index) const { return v[index]; }
+
+        inline ElementType det()
+        {
+            return v[0][0] * (v[1][1] * v[2][2] - v[2][1] * v[1][2]) -
+             v[0][1] * (v[1][0] * v[2][2] - v[1][2] * v[2][0]) +
+             v[0][2] * (v[1][0] * v[2][1] - v[1][1] * v[2][0]);
+        }
+
+        inline Mat3x3<double> inverse()
+        {
+            double w = 1.0 / det();
+            return
+            {
+                (v[1][1] * v[2][2] - v[2][1] * v[1][2]) * w,
+                (v[0][2] * v[2][1] - v[0][1] * v[2][2]) * w,
+                (v[0][1] * v[1][2] - v[0][2] * v[1][1]) * w,
+                (v[1][2] * v[2][0] - v[1][0] * v[2][2]) * w,
+                (v[0][0] * v[2][2] - v[0][2] * v[2][0]) * w,
+                (v[1][0] * v[0][2] - v[0][0] * v[1][2]) * w,
+                (v[1][0] * v[2][1] - v[2][0] * v[1][1]) * w,
+                (v[2][0] * v[0][1] - v[0][0] * v[2][1]) * w,
+                (v[0][0] * v[1][1] - v[1][0] * v[0][1]) * w
+            };
+        }
+
+        inline Mat3x3<ElementType> transpose()
+        {
+            return
+            {
+                v[0][0], v[1][0], v[2][0],
+                v[0][1], v[1][1], v[2][1],
+                v[0][2], v[1][2], v[2][2]
+            };
+        }
+
 
         template <typename T>
-        Vec3<ElementType> operator*(const Vec3<T>& v)
+        Vec3<ElementType> operator*(const Vec3<T>& rhs)
         {
             Vec3<ElementType> result;
             for (int i = 0; i < 3; i++)
                 for (int j = 0; j < 3; j++)
-                    result[i] += vecs[i][j] * v[j];
+                    result[i] += v[i][j] * rhs[j];
             
             return result;
         }
 
         template <typename T>
-        Mat3x3<ElementType> operator*(const Mat3x3<T>& v)
+        Mat3x3<ElementType> operator*(const Mat3x3<T>& rhs)
         {
             Mat3x3<ElementType> result;
-            for (int i = 0; i < 3; i++) result[i] = this * v[i];
+            for (int i = 0; i < 3; i++) result[i] = this * rhs[i];
             return result;
         }
 
         Mat3x3() : Mat3x3{ 0, 0, 0, 0 }
         {
-            for (int i = 0; i < 3; i++) vecs[i][i] = 1;
+            for (int i = 0; i < 3; i++) v[i][i] = 1;
         }
 
         Mat3x3(const std::initializer_list<ElementType>& list)
@@ -150,10 +176,10 @@ namespace mmath
             int t = 0;
             for (auto i = list.begin(); i != list.end(); i++)
             {
-                vecs[t / 3][t % 3] = *i;
+                v[t / 3][t % 3] = *i;
                 if (t++ == 9) break;
             }
-            for (; t < 9; t++) vecs[t / 3][t % 3] = 0;
+            for (; t < 9; t++) v[t / 3][t % 3] = 0;
         }
 
         Mat3x3(const std::initializer_list< Vec3<ElementType> >& list)
@@ -161,46 +187,65 @@ namespace mmath
             int t = 0;
             for (const auto& i : list)
             {
-                vecs[t] = i;
+                v[t] = i;
                 if (t++ == 3) break;
             }
-            for (; t < 3; t++) vecs[t] = Vec3<ElementType>();
+            for (; t < 3; t++) v[t] = Vec3<ElementType>();
         }
     };
 
     template <typename ElementType>
     struct Mat4x4
     {
-        Vec4<ElementType> vecs[4];
+        Vec4<ElementType> v[4];
 
-        Vec4<ElementType>& operator[](const int index) { return vecs[index]; }
-        const Vec4<ElementType>& operator[](const int index) const { return vecs[index]; }
+        Vec4<ElementType>& operator[](const int index) { return v[index]; }
+        const Vec4<ElementType>& operator[](const int index) const { return v[index]; }
         
+        inline Mat4x4<ElementType> transpose()
+        {
+            return
+            {
+                v[0][0], v[1][0], v[2][0], v[3][0], 
+                v[0][1], v[1][1], v[2][1], v[3][1], 
+                v[0][2], v[1][2], v[2][2], v[3][2], 
+                v[0][3], v[1][3], v[2][3], v[3][3], 
+            };
+        }
+
         template <typename T>
-        Vec4<ElementType> operator*(const Vec4<T>& v)
+        Vec4<ElementType> operator*(const Vec4<T>& rhs)
         {
             Vec4<ElementType> result;
             for (int i = 0; i < 4; i++)
                 for (int j = 0; j < 4; j++)
-                    result[i] += vecs[i][j] * v[j];
+                    result[i] += v[i][j] * rhs[j];
 
             return result;
         }
 
         template <typename T>
-        Mat4x4<ElementType> operator*(const Mat4x4<T>& v)
+        Mat4x4<ElementType> operator*(const Mat4x4<T>& rhs)
         {
             Mat4x4<ElementType> result = {0, 0, 0, 0};
             for (int i = 0; i < 4; i++)
                 for (int j = 0; j < 4; j++)
                     for (int k = 0; k < 4; k++)
-                        result[i][j] += vecs[i][k] * v.vecs[k][j];
+                        result[i][j] += v[i][k] * rhs.v[k][j];
             return result;
+        }
+
+        template <typename T>
+        operator Mat3x3<T>()
+        {
+            return {
+                mmath::Vec3<T>(v[0]), mmath::Vec3<T>(v[1]), mmath::Vec3<T>(v[2]) 
+            };
         }
 
         Mat4x4() : Mat4x4{ 0, 0, 0, 0 }
         {
-            for (int i = 0; i < 4; i++) vecs[i][i] = 1;
+            for (int i = 0; i < 4; i++) v[i][i] = 1;
         }
 
         Mat4x4(std::initializer_list<ElementType> list)
@@ -208,10 +253,10 @@ namespace mmath
             int t = 0;
             for (auto i = list.begin(); i != list.end(); i++)
             {
-                vecs[t / 4][t % 4] = *i;
+                v[t / 4][t % 4] = *i;
                 if (t++ == 16) break;
             }
-            for (; t < 16; t++) vecs[t / 4][t % 4] = 0;
+            for (; t < 16; t++) v[t / 4][t % 4] = 0;
         }
 
         Mat4x4(std::initializer_list< Vec4<ElementType> > list)
@@ -219,13 +264,42 @@ namespace mmath
             int t = 0;
             for (auto i = list.begin(); i != list.end(); i++)
             {
-                vecs[t] = *i;
+                v[t] = *i;
                 if (t++ == 4) break;
             }
-            for (; t < 4; t++) vecs[t] = Vec4<ElementType>();
+            for (; t < 4; t++) v[t] = Vec4<ElementType>();
         }
     };
+
+    /***** vector operation *****/
+
+    template <typename ElementType>
+    inline Vec2<ElementType> mult_element_wise(
+        Vec2<ElementType> u, Vec2<ElementType> v)
+    {
+        return { u.x * v.x, u.y * v.y };
+    }
+
+    template <typename ElementType>
+    inline Vec3<ElementType> mult_element_wise(
+        Vec3<ElementType> u, Vec3<ElementType> v)
+    {
+        return { u.x * v.x, u.y * v.y, u.z * v.z };
+    }
     
+    template <typename ElementType>
+    inline Vec4<ElementType> mult_element_wise(
+        Vec4<ElementType> u, Vec4<ElementType> v)
+    {
+        return { u.x * v.x, u.y * v.y, u.z * v.z, u.w * v.w};
+    }
+
+    template <typename ElementType>
+    ElementType dot(Vec2<ElementType> u, Vec2<ElementType> v)
+    {
+        return u[0] * v[0] + u[1] * v[1];
+    }
+
     template <typename ElementType>
     ElementType dot(Vec3<ElementType> u, Vec3<ElementType> v)
     {
@@ -233,47 +307,146 @@ namespace mmath
     }
 
     template <typename ElementType>
-    Vec3<ElementType> cross(Vec3<ElementType> u, Vec3<ElementType> v)
+    ElementType dot(Vec4<ElementType> u, Vec4<ElementType> v)
     {
-        return { u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2],
-            u[0] * v[1] - u[1] * v[0] };
+        return u[0] * v[0] + u[1] * v[1] + u[2] * v[2] + u[3] * v[3];
     }
 
+    template <typename VectorType>
+    VectorType reflect(VectorType I, VectorType N)
+    {
+        return I - 2.0 * dot(N, I) * N;
+    }
+
+    // Returns the z elements of cross product result vector.
+    template <typename ElementType>
+    double cross(Vec2<ElementType> u, Vec2<ElementType> v)
+    {
+        return u.x * v.y - u.y * v.x;
+    }
+
+    template <typename ElementType>
+    Vec3<double> cross(Vec3<ElementType> u, Vec3<ElementType> v)
+    {
+        return {
+            u.y * v.z - u.z * v.y,
+            u.z * v.x - u.x * v.z,
+            u.x * v.y - u.y * v.x
+        };
+    }
+
+
+    /***** definition of operator about vectors *****/
+    template <typename T>
+    Vec2<T> operator+(const Vec2<T>& lhs, const Vec2<T>& rhs)
+    {
+        return {lhs.x + rhs.x, lhs.y + rhs.y};
+    }
+    
+    template <typename T>
+    Vec3<T> operator+(const Vec3<T>& lhs, const Vec3<T>& rhs)
+    {
+        return {lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z};
+    }
+    
+    template <typename T>
+    Vec4<T> operator+(const Vec4<T>& lhs, const Vec4<T>& rhs)
+    {
+        return {lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w};
+    }
+
+    template <typename T>
+    Vec2<T> operator-(const Vec2<T>& lhs, const Vec2<T>& rhs)
+    {
+        return {lhs.x - rhs.x, lhs.y - rhs.y};
+    }
+    
+    template <typename T>
+    Vec3<T> operator-(const Vec3<T>& lhs, const Vec3<T>& rhs)
+    {
+        return {lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z};
+    }
+    
+    template <typename T>
+    Vec4<T> operator-(const Vec4<T>& lhs, const Vec4<T>& rhs)
+    {
+        return {lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z, lhs.w - rhs.w};
+    }
+
+    template <typename T>
+    Vec2<T> operator*(const T scalar, const Vec2<T>& v)
+    {
+        return {scalar * v.x, scalar * v.y};
+    }
+    
+    template <typename T>
+    Vec3<T> operator*(const T scalar, const Vec3<T>& v)
+    {
+        return {scalar * v.x, scalar * v.y, scalar * v.z};
+    }
+    
+    template <typename T>
+    Vec4<T> operator*(const T scalar, const Vec4<T>& v)
+    {
+        return {scalar * v.x, scalar * v.y, scalar * v.z, scalar * v.w};
+    }
+
+    template <typename T>
+    Vec2<T> operator*(const Vec2<T>& v, const T scalar)
+    {
+        return {scalar * v.x, scalar * v.y};
+    }
+    
+    template <typename T>
+    Vec3<T> operator*(const Vec3<T>& v, const T scalar)
+    {
+        return {scalar * v.x, scalar * v.y, scalar * v.z};
+    }
+    
+    template <typename T>
+    Vec4<T> operator*(const Vec4<T>& v, const T scalar)
+    {
+        return {scalar * v.x, scalar * v.y, scalar * v.z, scalar * v.w};
+    }
+
+
+    /***** transform matrices ****/
+
     template <typename IndexedVectorType>
-    Mat4x4<float> translate(const IndexedVectorType& v)
+    Mat4x4<double> translate(const IndexedVectorType& v)
     {
         return
         {
-            1, 0, 0, (float)v[0],
-            0, 1, 0, (float)v[1],
-            0, 0, 1, (float)v[2],
+            1, 0, 0, (double)v[0],
+            0, 1, 0, (double)v[1],
+            0, 0, 1, (double)v[2],
             0, 0, 0, 1,
         };
     }
 
     template <typename IndexedVectorType>
-    Mat4x4<float> scale(const IndexedVectorType& v)
+    Mat4x4<double> scale(const IndexedVectorType& v)
     {
         return
         {
-            (float)v[0], 0, 0, 0,
-            0, (float)v[1], 0, 0,
-            0, 0, (float)v[2], 0,
+            (double)v[0], 0, 0, 0,
+            0, (double)v[1], 0, 0,
+            0, 0, (double)v[2], 0,
             0, 0, 0, 1,
         };
     }
 
-    inline Mat4x4<float> rotate(const Vec3<float>& v, float radian)
+    inline Mat4x4<double> rotate(const Vec3<double>& v, const double radian)
     {
-        float c = cos(radian);
-        float s = sin(radian);
-        float c2 = 1 - c;
+        double c = cos(radian);
+        double s = sin(radian);
+        double c2 = 1 - c;
 
-        Vec3<float> nv = v.normalize(); 
+        Vec3<double> nv = v.normalize(); 
 
-        const float& x = v[0];
-        const float& y = v[1];
-        const float& z = v[2];
+        const double& x = v[0];
+        const double& y = v[1];
+        const double& z = v[2];
 
         return
         {
@@ -284,23 +457,23 @@ namespace mmath
         };
     }
 
-    inline Mat4x4<float> lookat(const Vec3<float>& eye,
-        const Vec3<float>& ref, const Vec3<float>& up)
+    inline Mat4x4<double> lookat(const Vec3<double>& eye,
+        const Vec3<double>& ref, const Vec3<double>& up)
     {
-        const Vec3<float> w = (eye - ref).normalize();
-        const Vec3<float> u = cross(up, w).normalize();
-        const Vec3<float> v = cross(w, u);
+        const Vec3<double> w = (eye - ref).normalize();
+        const Vec3<double> u = cross(up, w).normalize();
+        const Vec3<double> v = cross(w, u);
         return
         {
-            Vec4<float>(u, -dot(u, eye)),
-            Vec4<float>(v, -dot(v, eye)),
-            Vec4<float>(w, -dot(w, eye)),
-            Vec4<float>(0, 0, 0, 1)
+            Vec4<double>(u, -dot(u, eye)),
+            Vec4<double>(v, -dot(v, eye)),
+            Vec4<double>(w, -dot(w, eye)),
+            Vec4<double>(0, 0, 0, 1)
         };
     }
 
-    inline Mat4x4<float> ortho(float left, float right,
-        float bottom, float top, float zNear, float zFar)
+    inline Mat4x4<double> ortho(double left, double right,
+        double bottom, double top, double zNear, double zFar)
     {
         return {
             2 / (right - left), 0, 0, -(right + left) / (right - left),
@@ -310,14 +483,14 @@ namespace mmath
         };
     }
 
-    inline float radian(float degree) { return degree * (PI / 180); }
+    inline double radian(double degree) { return degree * (PI / 180); }
 
-    inline Mat4x4<float> perspective(float fovy, float aspect,
-        float near, float far)
+    inline Mat4x4<double> perspective(double fovy, double aspect,
+        double near, double far)
     {
-        float h = near * atan((radian(fovy) / 2.0));
-        float w = h * aspect;
-        float d = (far - near);
+        double h = near * tan(radian(fovy / 2.0));
+        double w = h * aspect;
+        double d = (far - near);
         return {
             near / w, 0, 0, 0,
             0, near / h, 0, 0,
@@ -327,16 +500,19 @@ namespace mmath
     }
 
     template <typename ElementType>
-    ElementType interpolate(ElementType a, ElementType b, ElementType c, Vec3<float> weight)
+    ElementType interpolate(ElementType a, ElementType b, ElementType c, Vec3<double> weight)
     {
         return a * weight[0] + b * weight[1] + c * weight[2];
     }
     
     template <typename ElementType>
-    ElementType interpolate(ElementType a, ElementType b, float a_w, float b_w)
+    ElementType interpolate(ElementType a, ElementType b, double a_w, double b_w)
     {
         return a * a_w + b * b_w;
     }
+
+
+    // function for debug(print in console)
 
     template <typename ElementType>
     std::ostream& operator<<(std::ostream &os, const Vec3<ElementType> &v)
@@ -360,6 +536,5 @@ namespace mmath
         for(int i = 0; i < 3; i++) os << mat[i] << ", \n";
         os << mat[3] << "]";
         return os;
-    }
-    
+    }    
 }

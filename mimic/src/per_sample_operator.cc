@@ -7,26 +7,34 @@
 
 typedef int color_t;
 
-float z_buffer[1920 * 1080];
+double z_buffer[1920 * 1080];
 int color_buffer[1920 * 1080];
 
-void appendFragment(Fragment* fragment, int pitch)
+bool z_mode = 0;
+
+void set_z_mode(bool t)
+{
+    z_mode = t;
+}
+
+void appendFragment(ShadedFragment* fragment, int pitch)
 {
     const int index = fragment->x + fragment->y * pitch;
     if(z_buffer[index] > fragment->z)
     {
         z_buffer[index] = fragment->z;
-        color_buffer[index] = fragment->color;
+        if(z_mode) color_buffer[index] = (255 - (int)((fragment->z) * 255)) << 24;
+        else color_buffer[index] = fragment->color;
     }
 }
 
 
-int perSampleOperation(Context* context, std::vector<Fragment>* fragments)
+int perSampleOperation(Context* context, std::vector<ShadedFragment>* fragments)
 {
     int* texture_pixels;
     int pitch;
 
-    std::fill(z_buffer, z_buffer + sizeof(z_buffer) / sizeof(float), 100.0);
+    std::fill(z_buffer, z_buffer + sizeof(z_buffer) / sizeof(double), 100.0);
     std::fill(color_buffer, color_buffer + sizeof(color_buffer) / sizeof(int),
         0x333333FF);
 

@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include "mimicMath.hh"
 
+typedef int color_t;
+
 enum DrawingType
 {
     DRAW_POINTS,
@@ -22,15 +24,34 @@ extern int TerminateMimicGL();
 // vao_vbo.cc
 extern void bindVertexArray(struct VAO* vao);
 extern void bindBuffer(struct VBO* vbo);
-extern void copyIntoBufferData(int size, float* data);
+extern void copyIntoBufferData(int size, double* data);
 extern void setVaoPointer(int index, int size, int stride, int offset);
 extern struct VAO* generateVertexArray();
 extern struct VBO* generateBuffer();
 extern struct VBO* deleteBuffer(struct VBO* vbo);
 
-// vertex_processor.cc
-extern void set_vertex_shader(void (*vertex_shader)(float*[], mmath::Vec4<float>*, float[]));
+/**
+ * Set vertex shader and fragment shader to be used for
+ * vertex processing and fragment processing.
+ * 
+ * \param out_size: The size of out variables produced from vertex_shader.
+ *                  Namely, the size of variables to be inputted to fragment
+ *                  shader. All of out variables should be double,
+ *                  so the total bytes of out variable will be (8 * out_size).
+ * \param vertex_shader: The shader function to be used for vertex processing.
+ *                       This function takes the attributes by first argument,
+ *                       and should return the position(2nd argument)
+ *                       and the out variables(3rd argument).
+ * \param fragment_shader: The shader function to be used for fragment
+ *                         processing. This function only takes one argument,
+ *                         fragment_shader, which contains 3D position in
+ *                         viewport space and in variables data.
+ */
+extern void set_shaders(
+    const uint32_t out_size,
+    void (*vertex_shader)(double*[], mmath::Vec4<double>*, double[]),
+    color_t (*fragment_shader)(struct Fragment*)
+);
 
-
-
+extern void set_z_mode(bool t);
 

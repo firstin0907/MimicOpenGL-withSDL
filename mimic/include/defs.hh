@@ -21,7 +21,15 @@ struct Context
     std::vector<struct VAO*> vaos;
     std::vector<struct VBO*> vbos;
 
-    void (*vertex_shader)(float*[], mmath::Vec4<float>*, float[]);
+    void (*vertex_shader)(double*[], mmath::Vec4<double>*, double[]) = nullptr;
+    color_t (*fragment_shader)(struct Fragment*) = nullptr;
+    
+    // number of out variables of vertex shader
+    uint32_t vshader_out_data_size = 0;
+    
+    // address of memory to store out variables of vertex shader
+    double* vshader_out_data_buf = nullptr;
+    double* fshader_out_data_buf = nullptr;
 
     int window_w, window_h;
 };
@@ -36,34 +44,36 @@ struct VAO
         int index;
         int size;
         int stride;
-        float* pointer;
+        double* pointer;
     } vao_table[MAX_VERTEX_ATTRIBS];
 };
 
 struct VBO
 {
-    float* object;
+    double* object;
 };
 
-struct VertexShaderOutput
+struct VshaderOutput
 {
-    mmath::Vec4<float> pos;
-    float* data;
+    mmath::Vec4<double> pos;
+    double* data;
+    int tp;
 };
 
 // vertex_processer.cc
-extern VertexShaderOutput call_vertex_shader(int vertex_number);
+extern VshaderOutput call_vertex_shader(int vertex_number);
 
 // per_sample_operator.cc
 extern int perSampleOperation(Context* context,
-    std::vector<Fragment>* fragments);
+    std::vector<ShadedFragment>* fragments);
 
 // scan_converser.cc
-bool clipping_line(VertexShaderOutput& p1, VertexShaderOutput& p2,
+extern bool clipping_line(VshaderOutput& p1, VshaderOutput& p2,
     int data_size);
-void draw_line_with_dda(const VertexShaderOutput& p1,
-    const VertexShaderOutput& p2, int data_length,
-    std::vector<Fragment>* fragments);
+extern void draw_line_with_dda(const VshaderOutput& p1,
+    const VshaderOutput& p2, std::vector<ShadedFragment>* fragments);
+extern void draw_triangle(const VshaderOutput& p1, const VshaderOutput& p2,
+    const VshaderOutput& p3, std::vector<ShadedFragment>* fragments);
 
 // fragment_processor.cc
-extern void call_fragment_shader(struct Fragment* fragment);
+extern ShadedFragment call_fragment_shader(struct Fragment* fragment);
