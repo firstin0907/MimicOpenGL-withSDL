@@ -82,7 +82,6 @@ void draw_line_with_dda(const VshaderOutput& p1,
     {
         Fragment one;
         one.f_data = context.fshader_out_data_buf;
-        one.f_data = context.fshader_out_data_buf;
 
         const double t = i / (double)steps;
 

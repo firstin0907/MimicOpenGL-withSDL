@@ -8,22 +8,24 @@ Context context;
 int StartMimicGL(int window_w, int window_h)
 {
     SDL_Init(SDL_INIT_EVERYTHING);
+    
     context.window = SDL_CreateWindow(
         "Hello World", SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED, window_w, window_h, SDL_WINDOW_ALLOW_HIGHDPI
     );
-
     if(context.window == nullptr) return -1;
 
-    context.renderer = SDL_CreateRenderer(context.window, -1, SDL_RENDERER_ACCELERATED);
+    context.renderer = SDL_CreateRenderer(context.window, -1,
+        SDL_RENDERER_ACCELERATED);
+    if(context.renderer == nullptr) return -1;
 
     context.texture = SDL_CreateTexture(context.renderer,
         SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
         window_w, window_h);
+    if(context.texture == nullptr) return -1;
 
     context.window_w = window_w;
     context.window_h = window_h;
-
     return 0;    
 }
 
@@ -38,8 +40,12 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
         // Vertex Processing & Primitive Processing
         for(int i = start; i + 1 < start + number; i += 2)
         {
+            // Vertex Processing
             VshaderOutput p1 = call_vertex_shader(i);
             VshaderOutput p2 = call_vertex_shader(i + 1);
+            
+            // Vertex Post-Processing
+            vertex_post_processing_for_lines(p1, p2);
 
             // Clipping with respect to x, y, z coordinate.
             if(!clipping_line(p1, p2, 3)) continue;
@@ -55,6 +61,8 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
             // Draw line linking between first vertex and last vertex.
             VshaderOutput p1 = call_vertex_shader(start);
             VshaderOutput p2 = call_vertex_shader(start + number - 1);
+
+            //vertex_post_processing_for_lines(p1, p2);
 
             // Clipping with respect to x, y, z coordinate.
             if(clipping_line(p1, p2, 3))
@@ -85,6 +93,8 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
                 if(i % 2 == 0) even_vertex = call_vertex_shader(i);
                 else odd_vertex = call_vertex_shader(i);
                 
+                //vertex_post_processing_for_lines(odd_vertex, even_vertex);
+
                 // Clipping with respect to x, y, z coordinate.
                 if(!clipping_line(even_vertex, odd_vertex, 3)) continue;
 
@@ -108,6 +118,10 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
                 VshaderOutput p1 = call_vertex_shader(i - 2);
                 VshaderOutput p2 = call_vertex_shader(i - 1);
                 VshaderOutput p3 = call_vertex_shader(i);
+
+                vertex_post_processing_for_points(p1);
+                vertex_post_processing_for_points(p2);
+                vertex_post_processing_for_points(p3);
 
                 mmath::Vec3<double> p1_pos(p1.pos), p2_pos(p2.pos), p3_pos(p3.pos);
 

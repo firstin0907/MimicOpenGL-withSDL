@@ -54,14 +54,14 @@ color_t phong_fshader(struct Fragment* fragment)
 {
 	mmath::Vec3<double> light_pos(3, 2, 4);
 	mmath::Vec3<double> light_color(1, 1, 1);
-	mmath::Vec3<double> material_color(1, 0, 0);
+	mmath::Vec3<double> material_color(0.7, 0.7, 0.7);
 
 	auto surface_pos = *reinterpret_cast<mmath::Vec3<double>*>(fragment->f_data);
 	auto normal = *reinterpret_cast<mmath::Vec3<double>*>(
 		fragment->f_data + 3);
 	normal = normal.normalize();
 
-	double shininess = 32.0;
+	double shininess = 75.0;
 	
 	auto light_dir = (light_pos - surface_pos).normalize();
 
@@ -75,7 +75,7 @@ color_t phong_fshader(struct Fragment* fragment)
 	auto view_dir = (view_pos - surface_pos).normalize();
 	auto refl_dir = mmath::reflect(-1.0 * light_dir, normal);
 	double spec = std::max(mmath::dot(view_dir, refl_dir), .0);
-	auto specular = pow(spec, shininess) * mmath::mult_element_wise(light_color, {1, 1, 1});
+	auto specular = pow(spec, shininess) * mmath::mult_element_wise(material_color, {1, 1, 1});
 
 	auto color = ambient + diffuse + specular;
 
@@ -144,15 +144,11 @@ int main(int argc, char* argv[])
 	double triangle[] =
 	{
 		0, 0, 0, 1, 0, 0,
-		0.3, 0, 0.3, 0, 1, 0,
-		0.3, 0, -.3, 0, 0, 1, 
-		
-		0, 0, 0, 1, 0, 0,
-		 10, 0, 0, 0, 0, 1,
+		10, 0, 0, 0, 0, 1,
 		0, 0, -10, 0, 1, 0,
 		0, 0, 10, 0, 1, 0,
 		0, 0, 0, 0, 0, 1, 
-		0, 1, 0, 0, 0, 1,
+		0, 2, 0, 0, 0, 1,
 		
 		 0.0,  0.7,  0.7,  0.4, 1.0, 1.0, // v0
          0.7,  0.0,  0.7,  0.4, 1.0, 1.0, // v2
@@ -339,8 +335,7 @@ int main(int argc, char* argv[])
 		
 		M = mmath::translate(mmath::Vec3<double>{0, 0, 0});
 		mmath::Mat4x4<double> V = mmath::lookat(view_pos, {0, 0, 0}, {0, 1, 0});
-		//mmath::Mat4x4<double> V = mmath::lookat({0, 5, 0}, {0, 0, 0}, {(double)cos(t / 10), 0, (double)sin(t / 10)});
-		mmath::Mat4x4<double> P = mmath::perspective(45, 1, 1, 30);
+		mmath::Mat4x4<double> P = mmath::perspective(45, 1, 1, 20);
 		//mmath::Mat4x4<double> P = mmath::ortho(-3, 3, -3, 3, -3, 3); 
 
 		MVP = P * V * M;
@@ -349,21 +344,17 @@ int main(int argc, char* argv[])
 		// std::cout << V << std::endl;
 		// std::cout << P << std::endl;
 		// std::cout << MVP << std::endl;
-
-		M = mmath::translate(mmath::Vec3<double>(SDL_GetTicks() / 100, 100, 0))
-			* mmath::scale(mmath::Vec3<double>(1 + SDL_GetTicks() / 10000.0, 1 + SDL_GetTicks() / 10000.0, 1));
-
 		M = mmath::translate(mmath::Vec3<double>(400, 100, 0)) *
 		mmath::rotate(mmath::Vec3<double>(0, 0, 1), SDL_GetTicks() / 300.0);
 		
-		//DrawArrays(0, 3, DRAW_LINES);
-		//DrawArrays(3, 4, DRAW_LINES);
-		//DrawArrays(50, 50, DRAW_LINE_STRIP);
+		bindVertexArray(vao);
+		bindBuffer(vbo);
+		set_shaders(6, vertex_shader, fragment_shader);
+		DrawArrays(0, 6, DRAW_LINES);
 		
 		M = mmath::translate(mmath::Vec3<double>(0)) * mmath::scale(mmath::Vec3<double>(1, 1, 1));
 		MVP = P * V * M;
 
-		
 		bindVertexArray(box_vao);
 		bindBuffer(box_vbo);
 		set_shaders(6, phong_vshader, phong_fshader);

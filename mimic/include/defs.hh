@@ -63,6 +63,9 @@ struct VshaderOutput
 // vertex_processer.cc
 extern VshaderOutput call_vertex_shader(int vertex_number);
 
+bool vertex_post_processing_for_lines(VshaderOutput &p1, VshaderOutput& p2);
+bool vertex_post_processing_for_points(VshaderOutput &p);
+
 // per_sample_operator.cc
 extern int perSampleOperation(Context* context,
     std::vector<ShadedFragment>* fragments);
