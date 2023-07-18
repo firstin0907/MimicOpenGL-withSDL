@@ -15,16 +15,71 @@ enum DrawingType
 };
 
 // mimic.cc
+/**
+ * Conduct initializing.
+ * Must be called before any other functions of this file is called.
+ * 
+ * \param window_w: The width of the window which is going to show
+ *                  the rendered result.
+ * \param window_h: The width of the window which is going to show
+ *                  the rendered result.
+ * \returns 0 if success, -1 if error.
+*/
 extern int StartMimicGL(int window_w, int window_h);
+
+/**
+ * Draw the object based on VAO and VBO binded by bindVertexArray() and
+ * bindBuffer call. The result will not be shown until uset calls
+ * DrawFrame() function.
+ * 
+ * \param start: The index of VBO to be started to be drawn. 
+ * \param number: The number of vertex to be drawn.
+ * \param type: Specifies the method how to draw.
+*/
 extern void DrawArrays(const uint32_t start, const uint32_t number,
     DrawingType type);
+
+/**
+ * Update the window, to show the rendered image
+ * which is currently stored in buffer.
+ * After that, clear the buffer.
+ * 
+ * \returns Always 0
+*/
 extern int DrawFrame();
+
+/**
+ * Release all of resources which this header has allocated so far. 
+ * 
+ * \returns 0 if success, -1 if error.
+*/
 extern int TerminateMimicGL();
 
 // vao_vbo.cc
+/**
+ * Change the currently binded vao with given vao.
+ * 
+ * \param vao: The VAO to alternate.
+*/
 extern void bindVertexArray(struct VAO* vao);
+
+/**
+ * Change the currently binded VBO with given VBO.
+ * 
+ * \param vbo: The VBO to alternate.
+*/
 extern void bindBuffer(struct VBO* vbo);
+
+/**
+ * Copy the data into buffer(VBO). The old content of buffer is lost.
+ * 
+ * \param size: The size of buffer. (Namely, The number of total data.)
+ * \param data: The pointer which refers the starting address of
+ *              data to be copied into. The data must be double type.
+*/
 extern void copyIntoBufferData(int size, double* data);
+
+
 extern void setVaoPointer(int index, int size, int stride, int offset);
 extern struct VAO* generateVertexArray();
 extern struct VBO* generateBuffer();
@@ -53,5 +108,14 @@ extern void set_shaders(
     color_t (*fragment_shader)(struct Fragment*)
 );
 
+/**
+ * Set the mode which determines
+ * if the window shows the color of rendered image,
+ * or the color of the depth of pixel (red: near - black: far)
+ * vertex processing and fragment processing.
+ * 
+ * \param t: if t is given true, the window shows depth of pixel,
+ *           but if not, the window shows just color of rendered image.
+ */
 extern void set_z_mode(bool t);
 
