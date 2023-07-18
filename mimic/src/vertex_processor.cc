@@ -30,24 +30,20 @@ inline void clip_space_to_viewport_space(mmath::Vec4<double>& clip_pos)
     clip_pos.w = w_inv;
 }
 
-int data_cnt = 0;
-VshaderOutput call_vertex_shader(int vertex_number)
+VshaderOutput call_vertex_shader(int vertex_idx, double* var_buffer)
 {
-    data_cnt += context.vshader_out_data_size;
-    if(data_cnt >= context.vshader_out_data_size * 4) data_cnt = 0;
-    
     auto vao_table = context.binded_vao->vao_table;
 
     mmath::Vec4<double> pos;
     double* vbo_pointer[MAX_VERTEX_ATTRIBS];
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
     {
-        vbo_pointer[i] = vao_table[i].pointer + vao_table[i].stride * vertex_number;
+        vbo_pointer[i] = vao_table[i].pointer + vao_table[i].stride * vertex_idx;
     }
 
-    context.vertex_shader(vbo_pointer, &pos, context.vshader_out_data_buf + data_cnt);
+    context.vertex_shader(vbo_pointer, &pos, var_buffer);
 
-    return {pos, context.vshader_out_data_buf + data_cnt};
+    return {pos, var_buffer};
 }
 
 bool vertex_post_processing_for_lines(VshaderOutput &p1, VshaderOutput& p2)

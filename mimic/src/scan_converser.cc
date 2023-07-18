@@ -22,7 +22,7 @@ bool clipping_line_set_t0_t1(double p, double q, double &t0, double &t1)
 // Clipping of lines, by using Liang-Barsky Algorithm
 // https://www.skytopia.com/project/articles/compsci/clipping.html
 // https://www.geeksforgeeks.org/liang-barsky-algorithm/
-bool clipping_line(VshaderOutput& p1, VshaderOutput& p2, int data_size)
+bool clipping_line(VshaderOutput& p1, VshaderOutput& p2)
 {
     const double x1 = p1.pos[0], x2 = p2.pos[0];
     const double y1 = p1.pos[1], y2 = p2.pos[1];
@@ -52,7 +52,7 @@ bool clipping_line(VshaderOutput& p1, VshaderOutput& p2, int data_size)
         double perp_corr_t0 = t0 * w2 / ((1 - t0) * w1 + t0 * w2);
         double perp_corr_t1 = t1 * w2 / ((1 - t1) * w1 + t1 * w2);
 
-        for(int i = 0; i < data_size; i++)
+        for(int i = 0; i < context.vshader_out_data_size; i++)
         {
             const double attr1 = p1.data[i], attr2 = p2.data[i];
             

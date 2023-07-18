@@ -33,7 +33,21 @@ std::vector<ShadedFragment> fr;
 
 void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
 {
+
     auto& vao_table = context.binded_vao->vao_table;
+
+    auto* buffer = context.vshader_out_data_buf;
+    uint32_t var_sz = context.vshader_out_data_size;
+
+    auto duplicate_vshader_output = [&](const VshaderOutput& instance)
+    {
+        VshaderOutput new_instance = {instance.pos, instance.data + var_sz * 3};
+        for(int i = 0; i < var_sz; i++)
+            new_instance.data[i] = instance.data[i];
+        
+        return new_instance;
+    };
+
     switch(type)
     {
         case DRAW_LINES:
@@ -41,14 +55,14 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
         for(int i = start; i + 1 < start + number; i += 2)
         {
             // Vertex Processing
-            VshaderOutput p1 = call_vertex_shader(i);
-            VshaderOutput p2 = call_vertex_shader(i + 1);
+            VshaderOutput p1 = call_vertex_shader(i, buffer);
+            VshaderOutput p2 = call_vertex_shader(i + 1, buffer + var_sz);
             
             // Vertex Post-Processing
             vertex_post_processing_for_lines(p1, p2);
 
             // Clipping with respect to x, y, z coordinate.
-            if(!clipping_line(p1, p2, 3)) continue;
+            if(!clipping_line(p1, p2)) continue;
 
             // Scan Conversion & Fragment Processing
             draw_line_with_dda(p1, p2, &fr);
@@ -59,19 +73,21 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
         case DRAW_LINE_LOOP:
         {
             // Draw line linking between first vertex and last vertex.
-            VshaderOutput p1 = call_vertex_shader(start);
-            VshaderOutput p2 = call_vertex_shader(start + number - 1);
+            
+            // Vertex Processing
+            VshaderOutput p1 = call_vertex_shader(start, buffer);
+            VshaderOutput p2 = call_vertex_shader(start + number - 1, buffer + var_sz);
 
-            //vertex_post_processing_for_lines(p1, p2);
+            // Vertex Post-Processing
+            vertex_post_processing_for_lines(p1, p2);
 
             // Clipping with respect to x, y, z coordinate.
-            if(clipping_line(p1, p2, 3))
-            {
+            if(clipping_line(p1, p2))
                 // Scan Conversion & Fragment Processing
                 draw_line_with_dda(p1, p2, &fr);
-            }
             
-            // And work like DRAW_LINE_STRIP
+            // And work like DRAW_LINE_STRIP if there are more lines to be drawn
+            if(number <= 2) break;
         }
 
         case DRAW_LINE_STRIP:
@@ -80,9 +96,10 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
             if(number <= 1) break;
 
             VshaderOutput odd_vertex, even_vertex;
+            VshaderOutput odd_vertex_dup, even_vertex_dup;
 
-            if(start % 2 == 0) even_vertex = call_vertex_shader(start);
-            else odd_vertex = call_vertex_shader(start);
+            if(start % 2 == 0) even_vertex_dup = call_vertex_shader(start, buffer);
+            else odd_vertex_dup = call_vertex_shader(start, buffer + var_sz);
 
             // Vertex Processing & Primitive Processing
             for(int i = start + 1; i < start + number; i++)
@@ -90,23 +107,65 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
                 // Reuse previously calculated output,
                 // only calculate new one vertex.
 
-                if(i % 2 == 0) even_vertex = call_vertex_shader(i);
-                else odd_vertex = call_vertex_shader(i);
-                
-                //vertex_post_processing_for_lines(odd_vertex, even_vertex);
+                if(i % 2 == 0)
+                {
+                    even_vertex = call_vertex_shader(i, buffer);
+                    even_vertex_dup =  duplicate_vshader_output(even_vertex);
 
-                // Clipping with respect to x, y, z coordinate.
-                if(!clipping_line(even_vertex, odd_vertex, 3)) continue;
+                    vertex_post_processing_for_lines(odd_vertex_dup, even_vertex);
 
-                // Scan Conversion & Fragment Processing
-                draw_line_with_dda(even_vertex, odd_vertex, &fr);
+                    // Clipping with respect to x, y, z coordinate.
+                    if(!clipping_line(odd_vertex_dup, even_vertex)) continue;
+                    
+                    // Scan Conversion & Fragment Processing
+                    draw_line_with_dda(odd_vertex_dup, even_vertex, &fr);
+                }
+                else
+                {
+                    odd_vertex = call_vertex_shader(i, buffer + var_sz);
+                    odd_vertex_dup = duplicate_vshader_output(odd_vertex);
+
+                    vertex_post_processing_for_lines(odd_vertex, even_vertex_dup);
+
+                    // Clipping with respect to x, y, z coordinate.
+                    if(!clipping_line(odd_vertex, even_vertex_dup)) continue;
+                    
+                    // Scan Conversion & Fragment Processing
+                    draw_line_with_dda(odd_vertex, even_vertex_dup, &fr);
+                }
             }
             break;
         }
 
         case DRAW_TRIANGLES_FRAME:
         {
-            
+            for(int i = start + 2; i < start + number; i += 3)
+            {
+                // Vertex Processing
+                VshaderOutput p1 = call_vertex_shader(i - 2, buffer);
+                VshaderOutput p2 = call_vertex_shader(i - 1, buffer + var_sz);
+                VshaderOutput p3 = call_vertex_shader(i, buffer + var_sz * 2);
+
+                // Each of vertex is needed to compose line, twice.
+                // Thus, duplicate once for each of them.
+                auto p1_dup = duplicate_vshader_output(p1);
+                auto p2_dup = duplicate_vshader_output(p2);
+                auto p3_dup = duplicate_vshader_output(p3);
+
+                // Vertex Post-Processing
+                vertex_post_processing_for_lines(p1, p2_dup);
+                vertex_post_processing_for_lines(p2, p3_dup);
+                vertex_post_processing_for_lines(p3, p1_dup);
+
+                // Clipping with respect to x, y, z coordinate.
+                if(!clipping_line(p1, p2)) continue;
+
+                // Scan Conversion & Fragment Processing
+                draw_line_with_dda(p1, p2_dup, &fr);
+                draw_line_with_dda(p2, p3_dup, &fr);
+                draw_line_with_dda(p3, p1_dup, &fr);
+            }
+            break;
         }
 
         
@@ -114,11 +173,11 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
         {
             for(int i = start + 2; i < start + number; i += 3)
             {
-                // Vertex Processing & Primitive Processing
-                VshaderOutput p1 = call_vertex_shader(i - 2);
-                VshaderOutput p2 = call_vertex_shader(i - 1);
-                VshaderOutput p3 = call_vertex_shader(i);
-
+                // Vertex Processing
+                VshaderOutput p1 = call_vertex_shader(i - 2, buffer);
+                VshaderOutput p2 = call_vertex_shader(i - 1, buffer + var_sz);
+                VshaderOutput p3 = call_vertex_shader(i, buffer + var_sz * 2);
+                
                 vertex_post_processing_for_points(p1);
                 vertex_post_processing_for_points(p2);
                 vertex_post_processing_for_points(p3);
@@ -160,14 +219,13 @@ void set_shaders(const uint32_t out_size,
     context.fragment_shader = fragment_shader;
     context.vshader_out_data_size = out_size;
 
-    
     if(context.vshader_out_data_buf != nullptr)
         delete[] context.vshader_out_data_buf;
     if(context.fshader_out_data_buf != nullptr)
         delete[] context.fshader_out_data_buf;
 
-    context.vshader_out_data_buf = new double[out_size * 4];
-    context.fshader_out_data_buf = new double[out_size * 4];
+    context.vshader_out_data_buf = new double[out_size * 6];
+    context.fshader_out_data_buf = new double[out_size * 6];
 }
 
 int TerminateMimicGL()

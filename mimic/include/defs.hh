@@ -61,7 +61,7 @@ struct VshaderOutput
 };
 
 // vertex_processer.cc
-extern VshaderOutput call_vertex_shader(int vertex_number);
+extern VshaderOutput call_vertex_shader(int vertex_idx, double* var_buffer);
 
 bool vertex_post_processing_for_lines(VshaderOutput &p1, VshaderOutput& p2);
 bool vertex_post_processing_for_points(VshaderOutput &p);
@@ -71,8 +71,7 @@ extern int perSampleOperation(Context* context,
     std::vector<ShadedFragment>* fragments);
 
 // scan_converser.cc
-extern bool clipping_line(VshaderOutput& p1, VshaderOutput& p2,
-    int data_size);
+extern bool clipping_line(VshaderOutput& p1, VshaderOutput& p2);
 extern void draw_line_with_dda(const VshaderOutput& p1,
     const VshaderOutput& p2, std::vector<ShadedFragment>* fragments);
 extern void draw_triangle(const VshaderOutput& p1, const VshaderOutput& p2,

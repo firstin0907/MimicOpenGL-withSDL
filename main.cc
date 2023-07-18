@@ -54,7 +54,7 @@ color_t phong_fshader(struct Fragment* fragment)
 {
 	mmath::Vec3<double> light_pos(3, 2, 4);
 	mmath::Vec3<double> light_color(1, 1, 1);
-	mmath::Vec3<double> material_color(0.7, 0.7, 0.7);
+	mmath::Vec3<double> material_color(1.0, 0.0, 0.0);
 
 	auto surface_pos = *reinterpret_cast<mmath::Vec3<double>*>(fragment->f_data);
 	auto normal = *reinterpret_cast<mmath::Vec3<double>*>(
@@ -271,8 +271,6 @@ int main(int argc, char* argv[])
 	setVaoPointer(0, 3, 6, 0);
 	setVaoPointer(1, 3, 6, 3);
 
-
-
     SDL_Event event;
     bool running = true;
 	bool mouse_down = false;
@@ -335,7 +333,7 @@ int main(int argc, char* argv[])
 		
 		M = mmath::translate(mmath::Vec3<double>{0, 0, 0});
 		mmath::Mat4x4<double> V = mmath::lookat(view_pos, {0, 0, 0}, {0, 1, 0});
-		mmath::Mat4x4<double> P = mmath::perspective(45, 1, 1, 20);
+		mmath::Mat4x4<double> P = mmath::perspective(45, 1, 1, 40);
 		//mmath::Mat4x4<double> P = mmath::ortho(-3, 3, -3, 3, -3, 3); 
 
 		MVP = P * V * M;
@@ -344,8 +342,6 @@ int main(int argc, char* argv[])
 		// std::cout << V << std::endl;
 		// std::cout << P << std::endl;
 		// std::cout << MVP << std::endl;
-		M = mmath::translate(mmath::Vec3<double>(400, 100, 0)) *
-		mmath::rotate(mmath::Vec3<double>(0, 0, 1), SDL_GetTicks() / 300.0);
 		
 		bindVertexArray(vao);
 		bindBuffer(vbo);
