@@ -5,7 +5,7 @@
 struct PPoint
 {
     int32_t x, y, z;
-    double* out_data;
+    float* out_data;
 };
 
 struct PLine

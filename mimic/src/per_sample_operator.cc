@@ -7,7 +7,7 @@
 
 typedef int color_t;
 
-double z_buffer[1920 * 1080];
+float z_buffer[1920 * 1080];
 int color_buffer[1920 * 1080];
 
 bool z_mode = 0;
@@ -34,7 +34,7 @@ int perSampleOperation(Context* context, std::vector<ShadedFragment>* fragments)
     int* texture_pixels;
     int pitch;
 
-    std::fill(z_buffer, z_buffer + sizeof(z_buffer) / sizeof(double), 100.0);
+    std::fill(z_buffer, z_buffer + sizeof(z_buffer) / sizeof(float), 100.0);
     std::fill(color_buffer, color_buffer + sizeof(color_buffer) / sizeof(int),
         0x333333FF);
 

@@ -6,7 +6,7 @@
 
 namespace mmath
 {
-    constexpr double PI = 3.14159265359f;
+    constexpr float PI = 3.14159265359f;
 
     template <typename ElementType>
     struct Vec2
@@ -24,11 +24,11 @@ namespace mmath
         ElementType x, y, z;
 
         ElementType L2Norm() const { return x * x + y * y + z * z; }
-        double length() const { return (double)sqrt((double)L2Norm()); }
+        float length() const { return (float)sqrt((float)L2Norm()); }
 
-        Vec3<double> normalize() const
+        Vec3<float> normalize() const
         {
-            double len = length();
+            float len = length();
             return {x / len, y / len, z / len};
         }
 
@@ -119,9 +119,9 @@ namespace mmath
              v[0][2] * (v[1][0] * v[2][1] - v[1][1] * v[2][0]);
         }
 
-        inline Mat3x3<double> inverse()
+        inline Mat3x3<float> inverse()
         {
-            double w = 1.0 / det();
+            float w = 1.0 / det();
             return
             {
                 (v[1][1] * v[2][2] - v[2][1] * v[1][2]) * w,
@@ -315,18 +315,18 @@ namespace mmath
     template <typename VectorType>
     VectorType reflect(VectorType I, VectorType N)
     {
-        return I - 2.0 * dot(N, I) * N;
+        return I - 2.0f * dot(N, I) * N;
     }
 
     // Returns the z elements of cross product result vector.
     template <typename ElementType>
-    double cross(Vec2<ElementType> u, Vec2<ElementType> v)
+    float cross(Vec2<ElementType> u, Vec2<ElementType> v)
     {
         return u.x * v.y - u.y * v.x;
     }
 
     template <typename ElementType>
-    Vec3<double> cross(Vec3<ElementType> u, Vec3<ElementType> v)
+    Vec3<float> cross(Vec3<ElementType> u, Vec3<ElementType> v)
     {
         return {
             u.y * v.z - u.z * v.y,
@@ -413,40 +413,40 @@ namespace mmath
     /***** transform matrices ****/
 
     template <typename IndexedVectorType>
-    Mat4x4<double> translate(const IndexedVectorType& v)
+    Mat4x4<float> translate(const IndexedVectorType& v)
     {
         return
         {
-            1, 0, 0, (double)v[0],
-            0, 1, 0, (double)v[1],
-            0, 0, 1, (double)v[2],
+            1, 0, 0, (float)v[0],
+            0, 1, 0, (float)v[1],
+            0, 0, 1, (float)v[2],
             0, 0, 0, 1,
         };
     }
 
     template <typename IndexedVectorType>
-    Mat4x4<double> scale(const IndexedVectorType& v)
+    Mat4x4<float> scale(const IndexedVectorType& v)
     {
         return
         {
-            (double)v[0], 0, 0, 0,
-            0, (double)v[1], 0, 0,
-            0, 0, (double)v[2], 0,
+            (float)v[0], 0, 0, 0,
+            0, (float)v[1], 0, 0,
+            0, 0, (float)v[2], 0,
             0, 0, 0, 1,
         };
     }
 
-    inline Mat4x4<double> rotate(const Vec3<double>& v, const double radian)
+    inline Mat4x4<float> rotate(const Vec3<float>& v, const float radian)
     {
-        double c = cos(radian);
-        double s = sin(radian);
-        double c2 = 1 - c;
+        float c = cos(radian);
+        float s = sin(radian);
+        float c2 = 1 - c;
 
-        Vec3<double> nv = v.normalize(); 
+        Vec3<float> nv = v.normalize(); 
 
-        const double& x = v[0];
-        const double& y = v[1];
-        const double& z = v[2];
+        const float& x = v[0];
+        const float& y = v[1];
+        const float& z = v[2];
 
         return
         {
@@ -457,23 +457,23 @@ namespace mmath
         };
     }
 
-    inline Mat4x4<double> lookat(const Vec3<double>& eye,
-        const Vec3<double>& ref, const Vec3<double>& up)
+    inline Mat4x4<float> lookat(const Vec3<float>& eye,
+        const Vec3<float>& ref, const Vec3<float>& up)
     {
-        const Vec3<double> w = (eye - ref).normalize();
-        const Vec3<double> u = cross(up, w).normalize();
-        const Vec3<double> v = cross(w, u);
+        const Vec3<float> w = (eye - ref).normalize();
+        const Vec3<float> u = cross(up, w).normalize();
+        const Vec3<float> v = cross(w, u);
         return
         {
-            Vec4<double>(u, -dot(u, eye)),
-            Vec4<double>(v, -dot(v, eye)),
-            Vec4<double>(w, -dot(w, eye)),
-            Vec4<double>(0, 0, 0, 1)
+            Vec4<float>(u, -dot(u, eye)),
+            Vec4<float>(v, -dot(v, eye)),
+            Vec4<float>(w, -dot(w, eye)),
+            Vec4<float>(0, 0, 0, 1)
         };
     }
 
-    inline Mat4x4<double> ortho(double left, double right,
-        double bottom, double top, double zNear, double zFar)
+    inline Mat4x4<float> ortho(float left, float right,
+        float bottom, float top, float zNear, float zFar)
     {
         return {
             2 / (right - left), 0, 0, -(right + left) / (right - left),
@@ -483,14 +483,14 @@ namespace mmath
         };
     }
 
-    inline double radian(double degree) { return degree * (PI / 180); }
+    inline float radian(float degree) { return degree * (PI / 180); }
 
-    inline Mat4x4<double> perspective(double fovy, double aspect,
-        double near, double far)
+    inline Mat4x4<float> perspective(float fovy, float aspect,
+        float near, float far)
     {
-        double h = near * tan(radian(fovy / 2.0));
-        double w = h * aspect;
-        double d = (far - near);
+        float h = near * tan(radian(fovy / 2.0));
+        float w = h * aspect;
+        float d = (far - near);
         return {
             near / w, 0, 0, 0,
             0, near / h, 0, 0,
@@ -500,13 +500,13 @@ namespace mmath
     }
 
     template <typename ElementType>
-    ElementType interpolate(ElementType a, ElementType b, ElementType c, Vec3<double> weight)
+    ElementType interpolate(ElementType a, ElementType b, ElementType c, Vec3<float> weight)
     {
         return a * weight[0] + b * weight[1] + c * weight[2];
     }
     
     template <typename ElementType>
-    ElementType interpolate(ElementType a, ElementType b, double a_w, double b_w)
+    ElementType interpolate(ElementType a, ElementType b, float a_w, float b_w)
     {
         return a * a_w + b * b_w;
     }

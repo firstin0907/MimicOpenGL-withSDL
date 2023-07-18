@@ -10,7 +10,7 @@
 constexpr int MAX_DATA_SIZE = 32;
 
 // Just helper function for "bool clipping_line(p1, p2)"
-bool clipping_line_set_t0_t1(double p, double q, double &t0, double &t1)
+bool clipping_line_set_t0_t1(float p, float q, float &t0, float &t1)
 {
     if(p == 0) return q >= 0;
     else if (p < 0) t0 = std::max(t0, q / p); // line goes into viewport
@@ -24,12 +24,12 @@ bool clipping_line_set_t0_t1(double p, double q, double &t0, double &t1)
 // https://www.geeksforgeeks.org/liang-barsky-algorithm/
 bool clipping_line(VshaderOutput& p1, VshaderOutput& p2)
 {
-    const double x1 = p1.pos[0], x2 = p2.pos[0];
-    const double y1 = p1.pos[1], y2 = p2.pos[1];
-    const double z1 = p1.pos[2], z2 = p2.pos[2];
-    const double w1 = p1.pos[3], w2 = p2.pos[3];
+    const float x1 = p1.pos[0], x2 = p2.pos[0];
+    const float y1 = p1.pos[1], y2 = p2.pos[1];
+    const float z1 = p1.pos[2], z2 = p2.pos[2];
+    const float w1 = p1.pos[3], w2 = p2.pos[3];
 
-    double t0 = 0.0, t1 = 1.0;
+    float t0 = 0.0, t1 = 1.0;
     if(clipping_line_set_t0_t1(x1 - x2, x1 - 0, t0, t1)
     && clipping_line_set_t0_t1(x2 - x1, context.window_w - x1, t0, t1)
     && clipping_line_set_t0_t1(y1 - y2, y1 - 0, t0, t1)
@@ -49,12 +49,12 @@ bool clipping_line(VshaderOutput& p1, VshaderOutput& p2)
         p2.tp = t1;
 
         // perspective correct barycentry.
-        double perp_corr_t0 = t0 * w2 / ((1 - t0) * w1 + t0 * w2);
-        double perp_corr_t1 = t1 * w2 / ((1 - t1) * w1 + t1 * w2);
+        float perp_corr_t0 = t0 * w2 / ((1 - t0) * w1 + t0 * w2);
+        float perp_corr_t1 = t1 * w2 / ((1 - t1) * w1 + t1 * w2);
 
         for(int i = 0; i < context.vshader_out_data_size; i++)
         {
-            const double attr1 = p1.data[i], attr2 = p2.data[i];
+            const float attr1 = p1.data[i], attr2 = p2.data[i];
             
             p1.data[i] = mmath::interpolate(attr1, attr2, (1 - perp_corr_t0), perp_corr_t0);
             p2.data[i] = mmath::interpolate(attr1, attr2, (1 - perp_corr_t1), perp_corr_t1);
@@ -71,22 +71,22 @@ void draw_line_with_dda(const VshaderOutput& p1,
 {
     int dx = p2.pos.x - p1.pos.x;
     int dy = p2.pos.y - p1.pos.y;
-    double steps = (double)std::max(abs(dx), abs(dy));
+    float steps = (float)std::max(abs(dx), abs(dy));
 
-    double x_inc = dx / (double) steps;
-    double y_inc = dy / (double) steps;
+    float x_inc = dx / (float) steps;
+    float y_inc = dy / (float) steps;
 
-    double x = p1.pos.x, y = p1.pos.y;
+    float x = p1.pos.x, y = p1.pos.y;
 
     for(int i = 0; i <= steps; i++, x += x_inc, y += y_inc)
     {
         Fragment one;
         one.f_data = context.fshader_out_data_buf;
 
-        const double t = i / (double)steps;
+        const float t = i / (float)steps;
 
         // barycentric coordinate in clip space(namely, world space)
-        const double correct_barycentric = (1 - t) * p1.pos.w / 
+        const float correct_barycentric = (1 - t) * p1.pos.w / 
             ((1 - t) * p1.pos.w + t * p2.pos.w);
 
         for(int j = 0; j <= context.vshader_out_data_size; j++)
@@ -116,26 +116,26 @@ void draw_triangle(const VshaderOutput& p1, const VshaderOutput& p2,
         (int)std::max({p1.pos.y, p2.pos.y, p3.pos.y}));
 
     // the coordinate of vertex, in window coordinate system.
-    const mmath::Vec2<double> w_pos1 = {p1.pos.x, p1.pos.y};
-    const mmath::Vec2<double> w_pos2 = {p2.pos.x, p2.pos.y};
-    const mmath::Vec2<double> w_pos3 = {p3.pos.x, p3.pos.y};
+    const mmath::Vec2<float> w_pos1 = {p1.pos.x, p1.pos.y};
+    const mmath::Vec2<float> w_pos2 = {p2.pos.x, p2.pos.y};
+    const mmath::Vec2<float> w_pos3 = {p3.pos.x, p3.pos.y};
 
     for(int x = xmin; x <= xmax; x++)
     {
         for(int y = ymin; y <= ymax; y++)
         {
-            mmath::Vec2<double> fragment_pos = {x, y};
-            double t1 = -mmath::cross(w_pos3 - w_pos2, fragment_pos - w_pos2);
-            double t2 = -mmath::cross(w_pos1 - w_pos3, fragment_pos - w_pos3);
-            double t3 = -mmath::cross(w_pos2 - w_pos1, fragment_pos - w_pos1);
+            mmath::Vec2<float> fragment_pos = {x, y};
+            float t1 = -mmath::cross(w_pos3 - w_pos2, fragment_pos - w_pos2);
+            float t2 = -mmath::cross(w_pos1 - w_pos3, fragment_pos - w_pos3);
+            float t3 = -mmath::cross(w_pos2 - w_pos1, fragment_pos - w_pos1);
 
             if(t1 < 0 || t2 < 0 || t3 < 0) continue;
                         
             // barycentric coordinate in window coordinate system.
-            auto w_bary = mmath::Vec3<double>(t1, t2, t3) / (t1 + t2 + t3);
+            auto w_bary = mmath::Vec3<float>(t1, t2, t3) / (t1 + t2 + t3);
             
             // barycentric coordinate in clip space(namely, world space)
-            auto perp_corr_bary = mmath::Vec3<double>(
+            auto perp_corr_bary = mmath::Vec3<float>(
                 w_bary.x * p1.pos.w, w_bary.y * p2.pos.w, w_bary.z * p3.pos.w) /
                 (w_bary.x * p1.pos.w + w_bary.y * p2.pos.w + w_bary.z * p3.pos.w);
             

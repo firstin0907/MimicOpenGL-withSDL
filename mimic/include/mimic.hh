@@ -75,9 +75,9 @@ extern void bindBuffer(struct VBO* vbo);
  * 
  * \param size: The size of buffer. (Namely, The number of total data.)
  * \param data: The pointer which refers the starting address of
- *              data to be copied into. The data must be double type.
+ *              data to be copied into. The data must be float type.
 */
-extern void copyIntoBufferData(int size, double* data);
+extern void copyIntoBufferData(int size, float* data);
 
 
 extern void setVaoPointer(int index, int size, int stride, int offset);
@@ -91,7 +91,7 @@ extern struct VBO* deleteBuffer(struct VBO* vbo);
  * 
  * \param out_size: The size of out variables produced from vertex_shader.
  *                  Namely, the size of variables to be inputted to fragment
- *                  shader. All of out variables should be double,
+ *                  shader. All of out variables should be float,
  *                  so the total bytes of out variable will be (8 * out_size).
  * \param vertex_shader: The shader function to be used for vertex processing.
  *                       This function takes the attributes by first argument,
@@ -104,7 +104,7 @@ extern struct VBO* deleteBuffer(struct VBO* vbo);
  */
 extern void set_shaders(
     const uint32_t out_size,
-    void (*vertex_shader)(double*[], mmath::Vec4<double>*, double[]),
+    void (*vertex_shader)(float*[], mmath::Vec4<float>*, float[]),
     color_t (*fragment_shader)(struct Fragment*)
 );
 

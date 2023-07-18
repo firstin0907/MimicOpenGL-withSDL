@@ -13,9 +13,14 @@ void bindBuffer(VBO* vbo)
 }
 
 // glBufferData in OpenGL
-void copyIntoBufferData(int size, double* data)
+void copyIntoBufferData(int size, float* data)
 {
-    context.binded_vbo->object = new double[size];
+    if(context.binded_vbo->object != nullptr)
+    {
+        delete[] context.binded_vbo->object;
+        context.binded_vbo->object = nullptr;
+    }
+    context.binded_vbo->object = new float[size];
     for(int i = 0; i < size; i++)
     {
         context.binded_vbo->object[i] = data[i];

@@ -5,18 +5,18 @@
 #include <cmath>
 #include <iostream>
 
-inline void clip_space_to_viewport_space(mmath::Vec4<double>& clip_pos)
+inline void clip_space_to_viewport_space(mmath::Vec4<float>& clip_pos)
 {
     // pre-calculate w-inverse.
     // (i.e. z-inverse with respect to view space)
-    double w_inv = 1 / clip_pos.w;
+    float w_inv = 1 / clip_pos.w;
 
-    mmath::Mat4x4<double> Tvp =
+    mmath::Mat4x4<float> Tvp =
     {
-        context.window_w / 2.0, 0, 0, context.window_w / 2.0,
-        0, -context.window_h / 2.0, 0, context.window_h / 2.0,
-        0, 0, 0.5, 0.5,
-        0, 0, 0, 1.0
+        context.window_w / 2.0f, 0, 0, context.window_w / 2.0f,
+        0, -context.window_h / 2.0f, 0, context.window_h / 2.0f,
+        0, 0, 0.5f, 0.5f,
+        0, 0, 0, 1.0f
     };
     
     // perspective division(divide by w)
@@ -30,12 +30,12 @@ inline void clip_space_to_viewport_space(mmath::Vec4<double>& clip_pos)
     clip_pos.w = w_inv;
 }
 
-VshaderOutput call_vertex_shader(int vertex_idx, double* var_buffer)
+VshaderOutput call_vertex_shader(int vertex_idx, float* var_buffer)
 {
     auto vao_table = context.binded_vao->vao_table;
 
-    mmath::Vec4<double> pos;
-    double* vbo_pointer[MAX_VERTEX_ATTRIBS];
+    mmath::Vec4<float> pos;
+    float* vbo_pointer[MAX_VERTEX_ATTRIBS];
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
     {
         vbo_pointer[i] = vao_table[i].pointer + vao_table[i].stride * vertex_idx;
@@ -48,7 +48,7 @@ VshaderOutput call_vertex_shader(int vertex_idx, double* var_buffer)
 
 bool vertex_post_processing_for_lines(VshaderOutput &p1, VshaderOutput& p2)
 {
-    auto clip_func = [](double p, double q, double &t0, double &t1)
+    auto clip_func = [](float p, float q, float &t0, float &t1)
     {
         if(p == 0) return q >= 0;
         else if (p < 0) t0 = std::max(t0, q / p); // line goes into viewport
@@ -58,12 +58,12 @@ bool vertex_post_processing_for_lines(VshaderOutput &p1, VshaderOutput& p2)
     };
 
     // Primitive Clipping
-    const double x1 = p1.pos[0], x2 = p2.pos[0];
-    const double y1 = p1.pos[1], y2 = p2.pos[1];
-    const double z1 = p1.pos[2], z2 = p2.pos[2];
-    const double w1 = p1.pos[3], w2 = p2.pos[3];
+    const float x1 = p1.pos[0], x2 = p2.pos[0];
+    const float y1 = p1.pos[1], y2 = p2.pos[1];
+    const float z1 = p1.pos[2], z2 = p2.pos[2];
+    const float w1 = p1.pos[3], w2 = p2.pos[3];
 
-    double t0 = 0.0, t1 = 1.0;
+    float t0 = 0.0, t1 = 1.0;
     if(clip_func((x1 + w1) - (x2 + w2), (x1 + w1) - 0, t0, t1)
     && clip_func((x2 - w2) - (x1 - w1), 0 - (x1 - w1), t0, t1)
     && clip_func((y1 + w1) - (y2 + w2), (y1 + w1) - 0, t0, t1)
@@ -86,7 +86,7 @@ bool vertex_post_processing_for_lines(VshaderOutput &p1, VshaderOutput& p2)
 
         for(int i = 0; i < context.vshader_out_data_size; i++)
         {
-            const double attr1 = p1.data[i], attr2 = p2.data[i];
+            const float attr1 = p1.data[i], attr2 = p2.data[i];
             
             p1.data[i] = mmath::interpolate(attr1, attr2, 1 - t0, t0);
             p2.data[i] = mmath::interpolate(attr1, attr2, 1 - t1, t1);

@@ -11,25 +11,25 @@ typedef int color_t;
 
 struct Context
 {
-    struct SDL_Window* window;
-    struct SDL_Texture* texture;
-    struct SDL_Renderer* renderer;
+    struct SDL_Window* window = nullptr;
+    struct SDL_Texture* texture = nullptr;
+    struct SDL_Renderer* renderer = nullptr;
 
-    struct VAO* binded_vao;
-    struct VBO* binded_vbo;
+    struct VAO* binded_vao = nullptr;
+    struct VBO* binded_vbo = nullptr;
 
     std::vector<struct VAO*> vaos;
     std::vector<struct VBO*> vbos;
 
-    void (*vertex_shader)(double*[], mmath::Vec4<double>*, double[]) = nullptr;
+    void (*vertex_shader)(float*[], mmath::Vec4<float>*, float[]) = nullptr;
     color_t (*fragment_shader)(struct Fragment*) = nullptr;
     
     // number of out variables of vertex shader
     uint32_t vshader_out_data_size = 0;
     
     // address of memory to store out variables of vertex shader
-    double* vshader_out_data_buf = nullptr;
-    double* fshader_out_data_buf = nullptr;
+    float* vshader_out_data_buf = nullptr;
+    float* fshader_out_data_buf = nullptr;
 
     int window_w, window_h;
 };
@@ -44,24 +44,24 @@ struct VAO
         int index;
         int size;
         int stride;
-        double* pointer;
+        float* pointer;
     } vao_table[MAX_VERTEX_ATTRIBS];
 };
 
 struct VBO
 {
-    double* object;
+    float* object;
 };
 
 struct VshaderOutput
 {
-    mmath::Vec4<double> pos;
-    double* data;
+    mmath::Vec4<float> pos;
+    float* data;
     int tp;
 };
 
 // vertex_processer.cc
-extern VshaderOutput call_vertex_shader(int vertex_idx, double* var_buffer);
+extern VshaderOutput call_vertex_shader(int vertex_idx, float* var_buffer);
 
 bool vertex_post_processing_for_lines(VshaderOutput &p1, VshaderOutput& p2);
 bool vertex_post_processing_for_points(VshaderOutput &p);

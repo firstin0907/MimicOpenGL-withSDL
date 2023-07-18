@@ -182,7 +182,7 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
                 vertex_post_processing_for_points(p2);
                 vertex_post_processing_for_points(p3);
 
-                mmath::Vec3<double> p1_pos(p1.pos), p2_pos(p2.pos), p3_pos(p3.pos);
+                mmath::Vec3<float> p1_pos(p1.pos), p2_pos(p2.pos), p3_pos(p3.pos);
 
                 // Back-face culling
                 auto polygon_normal =
@@ -212,7 +212,7 @@ int DrawFrame()
 }
 
 void set_shaders(const uint32_t out_size,
-    void (*vertex_shader)(double*[], mmath::Vec4<double>*, double[]),
+    void (*vertex_shader)(float*[], mmath::Vec4<float>*, float[]),
     color_t (*fragment_shader)(struct Fragment*))
 {
     context.vertex_shader = vertex_shader;
@@ -224,8 +224,8 @@ void set_shaders(const uint32_t out_size,
     if(context.fshader_out_data_buf != nullptr)
         delete[] context.fshader_out_data_buf;
 
-    context.vshader_out_data_buf = new double[out_size * 6];
-    context.fshader_out_data_buf = new double[out_size * 6];
+    context.vshader_out_data_buf = new float[out_size * 6];
+    context.fshader_out_data_buf = new float[out_size * 6];
 }
 
 int TerminateMimicGL()
