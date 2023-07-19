@@ -16,7 +16,7 @@ enum DrawingType
 
 // mimic.cc
 /**
- * Conduct initializing.
+ * Conducts initializing.
  * Must be called before any other functions of this file is called.
  * 
  * \param window_w: The width of the window which is going to show
@@ -28,8 +28,8 @@ enum DrawingType
 extern int StartMimicGL(int window_w, int window_h);
 
 /**
- * Draw the object based on VAO and VBO binded by bindVertexArray() and
- * bindBuffer call. The result will not be shown until uset calls
+ * Draws the object based on VAO and VBO binded by bindVertexArray() and
+ * bindBuffer() call. The result will not be shown until the user calls
  * DrawFrame() function.
  * 
  * \param start: The index of VBO to be started to be drawn. 
@@ -57,21 +57,21 @@ extern int TerminateMimicGL();
 
 // vao_vbo.cc
 /**
- * Change the currently binded vao with given vao.
+ * Changes the currently binded vao with given vao.
  * 
  * \param vao: The VAO to alternate.
 */
 extern void bindVertexArray(struct VAO* vao);
 
 /**
- * Change the currently binded VBO with given VBO.
+ * Changes the currently binded VBO with given VBO.
  * 
  * \param vbo: The VBO to alternate.
 */
 extern void bindBuffer(struct VBO* vbo);
 
 /**
- * Copy the data into buffer(VBO). The old content of buffer is lost.
+ * Copys the data into buffer(VBO). The old content of buffer is lost.
  * 
  * \param size: The size of buffer. (Namely, The number of total data.)
  * \param data: The pointer which refers the starting address of
@@ -79,10 +79,37 @@ extern void bindBuffer(struct VBO* vbo);
 */
 extern void copyIntoBufferData(int size, float* data);
 
-
+/**
+ * Sets entry of currently binded VAO.
+ * 
+ * \param index: The index of entry of VAO to be set. For example,
+ *               if the user wants to set the meta-data about the first
+ *               attribute, it needs to be given as 1, and wants to set the data
+ *               of 2nd attribute, it needs to be given as 2.. and so on.
+ * \param size: The size of this attribute (per vertex).
+ * \param stride: The stride this attribute appears.
+ * \param offset: The total size of other attributes comming before
+ *                this attribute (of first vertex).
+*/
 extern void setVaoPointer(int index, int size, int stride, int offset);
+
+/**
+ * Allocate new VAO.
+ * 
+ * \returns the allocated VAO's address.
+*/
 extern struct VAO* generateVertexArray();
+
+/**
+ * Allocate new VBO.
+ * 
+ * \returns the allocated VBO's address.
+*/
 extern struct VBO* generateBuffer();
+
+/**
+ * Free given vbo and its buffer.
+*/
 extern struct VBO* deleteBuffer(struct VBO* vbo);
 
 /**

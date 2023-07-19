@@ -40,13 +40,11 @@ bool clipping_line(VshaderOutput& p1, VshaderOutput& p2)
         p1.pos[1] = y1 + t0 * (y2 - y1); 
         p1.pos[2] = mmath::interpolate(z1, z2, 1 - t0, t0);
         p1.pos[3] = mmath::interpolate(w1, w2, 1 - t0, t0);
-        p1.tp = t0;
         
         p2.pos[0] = x1 + t1 * (x2 - x1); 
         p2.pos[1] = y1 + t1 * (y2 - y1);
         p2.pos[2] = mmath::interpolate(z1, z2, 1 - t1, t1);
         p2.pos[3] = mmath::interpolate(w1, w2, 1 - t1, t1);
-        p2.tp = t1;
 
         // perspective correct barycentry.
         float perp_corr_t0 = t0 * w2 / ((1 - t0) * w1 + t0 * w2);
@@ -56,8 +54,10 @@ bool clipping_line(VshaderOutput& p1, VshaderOutput& p2)
         {
             const float attr1 = p1.data[i], attr2 = p2.data[i];
             
-            p1.data[i] = mmath::interpolate(attr1, attr2, (1 - perp_corr_t0), perp_corr_t0);
-            p2.data[i] = mmath::interpolate(attr1, attr2, (1 - perp_corr_t1), perp_corr_t1);
+            p1.data[i] = mmath::interpolate(
+                attr1, attr2, (1 - perp_corr_t0), perp_corr_t0);
+            p2.data[i] = mmath::interpolate(
+                attr1, attr2, (1 - perp_corr_t1), perp_corr_t1);
         }
         return true;
     }

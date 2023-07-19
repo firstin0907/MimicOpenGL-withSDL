@@ -1,11 +1,12 @@
 #pragma once
 
+#include <vector>
+
 #include "fragment.hh"
 #include "primitive.hh"
 #include "mimicMath.hh"
-#include <vector>
 
-#define MAX_VERTEX_ATTRIBS 4 
+#define MAX_VERTEX_ATTRIBS 8
 
 typedef int color_t;
 
@@ -57,7 +58,6 @@ struct VshaderOutput
 {
     mmath::Vec4<float> pos;
     float* data;
-    int tp;
 };
 
 // vertex_processer.cc

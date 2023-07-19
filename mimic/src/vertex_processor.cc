@@ -76,13 +76,11 @@ bool vertex_post_processing_for_lines(VshaderOutput &p1, VshaderOutput& p2)
         p1.pos[1] = y1 + t0 * (y2 - y1); 
         p1.pos[2] = mmath::interpolate(z1, z2, 1 - t0, t0);
         p1.pos[3] = mmath::interpolate(w1, w2, 1 - t0, t0);
-        p1.tp = t0;
         
         p2.pos[0] = mmath::interpolate(x1, x2, 1 - t1, t1);
         p2.pos[1] = mmath::interpolate(y1, y2, 1 - t1, t1);
         p2.pos[2] = mmath::interpolate(z1, z2, 1 - t1, t1);
         p2.pos[3] = mmath::interpolate(w1, w2, 1 - t1, t1);
-        p2.tp = t1;
 
         for(int i = 0; i < context.vshader_out_data_size; i++)
         {

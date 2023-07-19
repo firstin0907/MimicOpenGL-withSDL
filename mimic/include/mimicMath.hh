@@ -13,9 +13,13 @@ namespace mmath
     {
         ElementType x, y;
 
-        Vec2() : x(0), y(0) {};
-        Vec2(ElementType x) : x(x), y(x) {};
-        Vec2(ElementType x, ElementType y) : x(x), y(y) {};
+        
+        ElementType L2Norm() const { return x * x + y * y; }
+        float length() const { return (float)sqrt((float)L2Norm()); }
+
+        Vec2() noexcept : x(0), y(0) {};
+        Vec2(ElementType x) noexcept : x(x), y(x) {};
+        Vec2(ElementType x, ElementType y) noexcept : x(x), y(y) {};
     };
     
     template <typename ElementType>
@@ -56,9 +60,10 @@ namespace mmath
         template <typename T>
         operator Vec3<T>() { return Vec3<T>(x, y, z); }
 
-        Vec3() : x(0), y(0), z(0) {};
-        Vec3(ElementType x) : x(x), y(x), z(x) {};
-        Vec3(ElementType x, ElementType y, ElementType z = 0) : x(x), y(y), z(z) {};
+        Vec3() noexcept : x(0), y(0), z(0) {};
+        Vec3(ElementType x) noexcept : x(x), y(x), z(x) {};
+        Vec3(ElementType x, ElementType y, ElementType z = 0) noexcept
+            : x(x), y(y), z(z) {};
     };
 
     template <typename ElementType>
@@ -96,11 +101,12 @@ namespace mmath
         template <typename T>
         operator Vec4<T>() { return Vec4<T>(x, y, z, w); }
 
-        Vec4() : x(0), y(0), z(0), w(0) {};
-        Vec4(ElementType x) : x(x),  y(x), z(x), w(x) {};
-        Vec4(Vec3<ElementType> v, ElementType w = 0)
+        Vec4() noexcept : x(0), y(0), z(0), w(0) {};
+        Vec4(ElementType x) noexcept : x(x),  y(x), z(x), w(x) {};
+        Vec4(Vec3<ElementType> v, ElementType w = 0) noexcept
             : x(v.x), y(v.y), z(v.z), w(w) {};
-        Vec4(ElementType x, ElementType y, ElementType z = 0, ElementType w = 0)
+        Vec4(ElementType x, ElementType y,
+            ElementType z = 0, ElementType w = 0) noexcept
             : x(x), y(y), z(z), w(w) {};
     };
 
@@ -243,12 +249,12 @@ namespace mmath
             };
         }
 
-        Mat4x4() : Mat4x4{ 0, 0, 0, 0 }
+        Mat4x4() noexcept : Mat4x4{ 0, 0, 0, 0 }
         {
             for (int i = 0; i < 4; i++) v[i][i] = 1;
         }
 
-        Mat4x4(std::initializer_list<ElementType> list)
+        Mat4x4(std::initializer_list<ElementType> list) noexcept
         {
             int t = 0;
             for (auto i = list.begin(); i != list.end(); i++)
@@ -259,7 +265,7 @@ namespace mmath
             for (; t < 16; t++) v[t / 4][t % 4] = 0;
         }
 
-        Mat4x4(std::initializer_list< Vec4<ElementType> > list)
+        Mat4x4(std::initializer_list< Vec4<ElementType> > list) noexcept
         {
             int t = 0;
             for (auto i = list.begin(); i != list.end(); i++)
@@ -412,8 +418,7 @@ namespace mmath
 
     /***** transform matrices ****/
 
-    template <typename IndexedVectorType>
-    Mat4x4<float> translate(const IndexedVectorType& v)
+    inline Mat4x4<float> translate(const Vec3<float>& v)
     {
         return
         {
@@ -424,8 +429,7 @@ namespace mmath
         };
     }
 
-    template <typename IndexedVectorType>
-    Mat4x4<float> scale(const IndexedVectorType& v)
+    inline Mat4x4<float> scale(const Vec3<float>& v)
     {
         return
         {
