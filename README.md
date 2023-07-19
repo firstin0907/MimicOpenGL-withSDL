@@ -1,5 +1,5 @@
 # MimicOpenGL-withSDL
-The small toy software 3D rasterizer using SDL.
+The small toy 3D software rasterizer using SDL.
 
 
 
