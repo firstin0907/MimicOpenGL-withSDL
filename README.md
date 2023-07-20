@@ -6,6 +6,6 @@ The small toy 3D software rasterizer using SDL.
 
 
 ### Video(Link)
-Phong shading using this project.
+Implementation of phong shading, through using this project.
 
-[![예제](https://img.youtube.com/vi/F5bhYDi9R2M/0.jpg)](https://youtu.be/F5bhYDi9R2M) 
+[![Phong Shading](https://img.youtube.com/vi/F5bhYDi9R2M/0.jpg)](https://youtu.be/F5bhYDi9R2M) 
