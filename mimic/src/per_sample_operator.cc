@@ -31,9 +31,9 @@ int perSampleOperation(Context* context, std::vector<ShadedFragment>* fragments)
 
     std::fill(z_buffer, z_buffer + sizeof(z_buffer) / sizeof(float), 100.0);
     std::fill(color_buffer, color_buffer + sizeof(color_buffer) / sizeof(int),
-        0x333333FF);
+        context->drawing_options.clear_color);
 
-    
+
     if(SDL_LockTexture(context->texture, NULL, (void **)&texture_pixels, &pitch) < 0)
     {
         return -1;

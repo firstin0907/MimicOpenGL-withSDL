@@ -28,6 +28,7 @@ int StartMimicGL(int window_w, int window_h)
     context.window_h = window_h;
 
     context.drawing_options.point_radius = 1;
+    context.drawing_options.clear_color = 0x333333FF; // light gray.
 
     return 0;    
 }

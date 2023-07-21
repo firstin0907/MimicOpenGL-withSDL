@@ -155,3 +155,10 @@ extern void set_point_radius(int radius);
  */
 extern void set_z_mode(bool t);
 
+/**
+ * Set the default background color to show
+ * when any object is not placed at that pixel.
+ * 
+ * \param color: 32-bit color value to be set as background color.
+*/
+extern void set_clear_color(color_t color);

@@ -34,8 +34,9 @@ struct Context
 
     struct 
     {
-        int point_radius; 
-        bool z_mode;
+        int     point_radius; 
+        color_t clear_color;
+        bool    z_mode;
     } drawing_options;
 
     int window_w, window_h;
