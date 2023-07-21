@@ -9,31 +9,31 @@
 
 constexpr int MAX_DATA_SIZE = 32;
 
-// Just helper function for "bool clipping_line(p1, p2)"
-bool clipping_line_set_t0_t1(float p, float q, float &t0, float &t1)
-{
-    if(p == 0) return q >= 0;
-    else if (p < 0) t0 = std::max(t0, q / p); // line goes into viewport
-    else t1 = std::min(t1, q / p); // line goes to outside of viewport
-        
-    return true;
-}
 
 // Clipping of lines, by using Liang-Barsky Algorithm
 // https://www.skytopia.com/project/articles/compsci/clipping.html
 // https://www.geeksforgeeks.org/liang-barsky-algorithm/
 bool clipping_line(VshaderOutput& p1, VshaderOutput& p2)
 {
+    auto clip_func = [](float p, float q, float &t0, float &t1)
+    {
+        if(p == 0) return q >= 0;
+        else if (p < 0) t0 = std::max(t0, q / p); // line goes into viewport
+        else t1 = std::min(t1, q / p); // line goes to outside of viewport
+            
+        return true;
+    };
+
     const float x1 = p1.pos[0], x2 = p2.pos[0];
     const float y1 = p1.pos[1], y2 = p2.pos[1];
     const float z1 = p1.pos[2], z2 = p2.pos[2];
     const float w1 = p1.pos[3], w2 = p2.pos[3];
 
     float t0 = 0.0, t1 = 1.0;
-    if(clipping_line_set_t0_t1(x1 - x2, x1 - 0, t0, t1)
-    && clipping_line_set_t0_t1(x2 - x1, context.window_w - x1, t0, t1)
-    && clipping_line_set_t0_t1(y1 - y2, y1 - 0, t0, t1)
-    && clipping_line_set_t0_t1(y2 - y1, context.window_h - y1, t0, t1)
+    if(clip_func(x1 - x2, x1 - 0, t0, t1)
+    && clip_func(x2 - x1, context.window_w - x1, t0, t1)
+    && clip_func(y1 - y2, y1 - 0, t0, t1)
+    && clip_func(y2 - y1, context.window_h - y1, t0, t1)
     && t0 < t1) 
     {
         p1.pos[0] = x1 + t0 * (x2 - x1); 
@@ -62,6 +62,30 @@ bool clipping_line(VshaderOutput& p1, VshaderOutput& p2)
         return true;
     }
     return false;
+}
+
+void draw_point(const VshaderOutput& p, std::vector<ShadedFragment>* fragments)
+{
+    const int x_min =
+        (int)round(p.pos.x) - context.drawing_options.point_radius + 1;
+    const int y_min =
+        (int)round(p.pos.y) - context.drawing_options.point_radius + 1;
+
+    const int x_max =
+        (int)round(p.pos.x) + context.drawing_options.point_radius - 1;
+    const int y_max =
+        (int)round(p.pos.y) + context.drawing_options.point_radius - 1;
+
+    for(int x = std::max(x_min, 0); x < std::min(x_max, context.window_w); x++)
+    {
+        for(int y = std::max(y_min, 0); y < std::min(y_max, context.window_h);
+            y++)
+        {
+            Fragment one = {x, y, (int)round(p.pos.z),
+                context.fshader_out_data_buf};
+            fragments->push_back(call_fragment_shader(&one));
+        }
+    }
 }
 
 // Draw Line by using DDA Algorithm

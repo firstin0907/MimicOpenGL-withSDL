@@ -1,6 +1,6 @@
 
-all: mimic.o main.o per_sample_operator.o scan_converser.o fragment_processor.o vertex_processor.o vao_vbo.o
-	g++ -I src/include -L src/lib -o main mimic.o main.o per_sample_operator.o scan_converser.o fragment_processor.o vertex_processor.o vao_vbo.o -lmingw32 -lSDL2main -lSDL2
+all: options.o mimic.o main.o per_sample_operator.o scan_converser.o fragment_processor.o vertex_processor.o vao_vbo.o
+	g++ -I src/include -L src/lib -o main mimic.o main.o options.o per_sample_operator.o scan_converser.o fragment_processor.o vertex_processor.o vao_vbo.o -lmingw32 -lSDL2main -lSDL2
 
 main.o: main.cc
 	g++ -I src/include -c -o main.o main.cc
@@ -23,5 +23,9 @@ vertex_processor.o: mimic/src/vertex_processor.cc
 vao_vbo.o: mimic/src/vao_vbo.cc
 	g++ -I src/include -c -o vao_vbo.o mimic/src/vao_vbo.cc
 
+options.o: mimic/src/vao_vbo.cc
+	g++ -I src/include -c -o options.o mimic/src/options.cc
+
 clean:
-	rm mimic.o main.exe main.o per_sample_operator.o
+	rm main.exe mimic.o main.o per_sample_operator.o scan_converser.o fragment_processor.o
+	rm vertex_processor.o vao_vbo.o options.o

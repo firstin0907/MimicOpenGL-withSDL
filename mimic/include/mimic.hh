@@ -135,6 +135,15 @@ extern void set_shaders(
     color_t (*fragment_shader)(struct Fragment*)
 );
 
+
+/**
+ * Set the radius of point to be drawn
+ * when DrawArray is called with type parameter as DRAW_POINTS.
+ * 
+ * \param radius: positive integer that represents the radius of point.
+*/
+extern void set_point_radius(int radius);
+
 /**
  * Set the mode which determines
  * if the window shows the color of rendered image,

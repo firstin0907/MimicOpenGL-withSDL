@@ -26,6 +26,9 @@ int StartMimicGL(int window_w, int window_h)
 
     context.window_w = window_w;
     context.window_h = window_h;
+
+    context.drawing_options.point_radius = 1;
+
     return 0;    
 }
 
@@ -33,7 +36,6 @@ std::vector<ShadedFragment> fr;
 
 void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
 {
-
     auto& vao_table = context.binded_vao->vao_table;
 
     auto* buffer = context.vshader_out_data_buf;
@@ -50,8 +52,23 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
 
     switch(type)
     {
+        case DRAW_POINTS:
+        for(int i = start; i < start + number; i++)
+        {
+            // Vertex Processing
+            VshaderOutput p1 = call_vertex_shader(i, buffer);
+
+            // Vertex Post-Processing
+            vertex_post_processing_for_points(p1);
+
+            // No need to clipping 
+            // Scan Conversion & Fragment Processing
+            draw_point(p1, &fr);
+        }
+        break;
+
+
         case DRAW_LINES:
-        // Vertex Processing & Primitive Processing
         for(int i = start; i + 1 < start + number; i += 2)
         {
             // Vertex Processing

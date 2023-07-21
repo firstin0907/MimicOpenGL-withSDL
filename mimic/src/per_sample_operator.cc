@@ -10,20 +10,15 @@ typedef int color_t;
 float z_buffer[1920 * 1080];
 int color_buffer[1920 * 1080];
 
-bool z_mode = 0;
-
-void set_z_mode(bool t)
-{
-    z_mode = t;
-}
-
 void appendFragment(ShadedFragment* fragment, int pitch)
 {
     const int index = fragment->x + fragment->y * pitch;
     if(z_buffer[index] > fragment->z)
     {
         z_buffer[index] = fragment->z;
-        if(z_mode) color_buffer[index] = (255 - (int)((fragment->z) * 255)) << 24;
+        
+        if(context.drawing_options.z_mode)
+            color_buffer[index] = (255 - (int)((fragment->z) * 255)) << 24;
         else color_buffer[index] = fragment->color;
     }
 }
