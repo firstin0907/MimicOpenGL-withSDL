@@ -11,7 +11,7 @@ make all
 ```
 in command.
 ### Write main.cc ✒
-By modifying main.cc source file and rebuilding project, you can change what is rendered. The user(programmer) is intended to include only "mimic/include/mimic.hh" header file which provides enough operations for rendering. For more details about the operations it provides, see [mimic/include/mimic.hh](/mimic/include/mimic.hh) and its comments.
+By modifying main.cc source file and rebuilding project, you can change what is rendered. The user(programmer) is intended to write the code with including only "mimic/include/mimic.hh" header file which provides enough operations for rendering. For more details about the operations this project provides, see [mimic/include/mimic.hh](/mimic/include/mimic.hh) and its comments.
 
 
 
