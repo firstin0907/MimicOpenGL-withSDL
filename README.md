@@ -30,9 +30,14 @@ In case of lines, the function clips the line preemptively and adjusts the coord
 
 And in case of triangles, back-face culling is conducted.
 
-## Scan Conversion(Rasterization)
-## Fragment Processing
-## Per-sample Operations
+### Scan Conversion(Rasterization)
+The primitives, composed of vertices, are converted into fragments(pixel) in this stage. Namely, the rasterizer determines which pixel is contained in each shape, such as triangle or line. For this, it conducts DDA algorithm for lines, and conducts naive algorithm(checking for all pixel if it is in primitive) for triangles.
+
+I plan to improve it more efficiently soon.
+
+### Fragment Processing
+TBU
+### Per-sample Operations
 
 
 ## Example
