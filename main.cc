@@ -89,7 +89,7 @@ color_t phong_fshader(struct Fragment* fragment)
 int main(int argc, char* argv[])
 {
     StartMimicGL(WINDOW_WIDTH, WINDOW_HEIGHT);
-	set_clear_color(0x000000FF);
+	//set_clear_color(0x000000FF);
 
 	float box[] =
 	{

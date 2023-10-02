@@ -1,4 +1,5 @@
 #include "../include/defs.hh"
+#include "../include/mimic.hh"
 
 // glVBindVertextArray in OpenGL
 void bindVertexArray(VAO* vao)
@@ -54,7 +55,7 @@ VBO* generateBuffer()
     return vbo;
 }
 
-VBO* deleteBuffer(VBO* vbo)
+void deleteBuffer(VBO* vbo)
 {
     delete[] vbo->object;
     delete vbo;

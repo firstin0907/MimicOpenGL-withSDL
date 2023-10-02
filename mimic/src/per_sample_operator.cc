@@ -7,17 +7,15 @@
 
 typedef int color_t;
 
-float z_buffer[1920 * 1080];
-int color_buffer[1920 * 1080];
-
-void appendFragment(ShadedFragment* fragment, int pitch)
+void appendFragment(float* z_buffer, color_t* color_buffer,
+    ShadedFragment* fragment, int pitch, bool z_mode)
 {
     const int index = fragment->x + fragment->y * pitch;
     if(z_buffer[index] > fragment->z)
     {
         z_buffer[index] = fragment->z;
         
-        if(context.drawing_options.z_mode)
+        if(z_mode)
             color_buffer[index] = (255 - (int)((fragment->z) * 255)) << 24;
         else color_buffer[index] = fragment->color;
     }
@@ -29,8 +27,8 @@ int perSampleOperation(Context* context, std::vector<ShadedFragment>* fragments)
     int* texture_pixels;
     int pitch;
 
-    std::fill(z_buffer, z_buffer + sizeof(z_buffer) / sizeof(float), 100.0);
-    std::fill(color_buffer, color_buffer + sizeof(color_buffer) / sizeof(int),
+    std::fill(context->z_buffer, context->z_buffer + 1920 * 1080, 100.0);
+    std::fill(context->color_buffer, context->color_buffer + 1920 * 1080,
         context->drawing_options.clear_color);
 
 
@@ -41,12 +39,13 @@ int perSampleOperation(Context* context, std::vector<ShadedFragment>* fragments)
     
     for(auto &fr : *fragments)
     {
-        appendFragment(&fr, context->window_w);
+        appendFragment(context->z_buffer, context->color_buffer,
+            &fr, context->window_w, context->drawing_options.z_mode);
     }
 
     for(int i = 0; i < context->window_h * context->window_w; i++)
     {
-        texture_pixels[i] = color_buffer[i];
+        texture_pixels[i] = context->color_buffer[i];
     } 
 
     SDL_UnlockTexture(context->texture);

@@ -110,7 +110,7 @@ extern struct VBO* generateBuffer();
 /**
  * Free given vbo and its buffer.
 */
-extern struct VBO* deleteBuffer(struct VBO* vbo);
+extern void deleteBuffer(struct VBO* vbo);
 
 /**
  * Set vertex shader and fragment shader to be used for

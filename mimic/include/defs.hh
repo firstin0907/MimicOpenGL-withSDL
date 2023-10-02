@@ -38,6 +38,11 @@ struct Context
         color_t clear_color;
         bool    z_mode;
     } drawing_options;
+    
+    std::vector<ShadedFragment> fr;
+
+    float* z_buffer = nullptr;
+    int* color_buffer = nullptr;
 
     int window_w, window_h;
 };

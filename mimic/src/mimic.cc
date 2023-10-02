@@ -27,13 +27,15 @@ int StartMimicGL(int window_w, int window_h)
     context.window_w = window_w;
     context.window_h = window_h;
 
+    context.color_buffer = new int[1920 * 1080];
+    context.z_buffer = new float[1920 * 1080];
+
     context.drawing_options.point_radius = 1;
     context.drawing_options.clear_color = 0x333333FF; // light gray.
 
     return 0;    
 }
 
-std::vector<ShadedFragment> fr;
 
 void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
 {
@@ -64,7 +66,7 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
 
             // No need to clipping 
             // Scan Conversion & Fragment Processing
-            draw_point(p1, &fr);
+            draw_point(p1, &context.fr);
         }
         break;
 
@@ -83,7 +85,7 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
             if(!clipping_line(p1, p2)) continue;
 
             // Scan Conversion & Fragment Processing
-            draw_line_with_dda(p1, p2, &fr);
+            draw_line_with_dda(p1, p2, &context.fr);
         }
         break;
     
@@ -102,7 +104,7 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
             // Clipping with respect to x, y, z coordinate.
             if(clipping_line(p1, p2))
                 // Scan Conversion & Fragment Processing
-                draw_line_with_dda(p1, p2, &fr);
+                draw_line_with_dda(p1, p2, &context.fr);
             
             // And work like DRAW_LINE_STRIP if there are more lines to be drawn
             if(number <= 2) break;
@@ -136,7 +138,7 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
                     if(!clipping_line(odd_vertex_dup, even_vertex)) continue;
                     
                     // Scan Conversion & Fragment Processing
-                    draw_line_with_dda(odd_vertex_dup, even_vertex, &fr);
+                    draw_line_with_dda(odd_vertex_dup, even_vertex, &context.fr);
                 }
                 else
                 {
@@ -149,7 +151,7 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
                     if(!clipping_line(odd_vertex, even_vertex_dup)) continue;
                     
                     // Scan Conversion & Fragment Processing
-                    draw_line_with_dda(odd_vertex, even_vertex_dup, &fr);
+                    draw_line_with_dda(odd_vertex, even_vertex_dup, &context.fr);
                 }
             }
             break;
@@ -179,9 +181,9 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
                 if(!clipping_line(p1, p2)) continue;
 
                 // Scan Conversion & Fragment Processing
-                draw_line_with_dda(p1, p2_dup, &fr);
-                draw_line_with_dda(p2, p3_dup, &fr);
-                draw_line_with_dda(p3, p1_dup, &fr);
+                draw_line_with_dda(p1, p2_dup, &context.fr);
+                draw_line_with_dda(p2, p3_dup, &context.fr);
+                draw_line_with_dda(p3, p1_dup, &context.fr);
             }
             break;
         }
@@ -208,7 +210,7 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
                 if(mmath::dot(polygon_normal, {0, 0, 1}) >= 0) continue;
 
                 // Scan Conversion & Fragment Processing
-                draw_triangle(p1, p2, p3, &fr);
+                draw_triangle(p1, p2, p3, &context.fr);
             }
             break;
         }
@@ -219,8 +221,8 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
 int DrawFrame()
 {
     // Per-sample Opeartions
-    perSampleOperation(&context, &fr);
-    fr.clear();
+    perSampleOperation(&context, &context.fr);
+    context.fr.clear();
     
     SDL_RenderCopy(context.renderer, context.texture, NULL, NULL);
 
@@ -248,6 +250,12 @@ void set_shaders(const uint32_t out_size,
 
 int TerminateMimicGL()
 {
+    delete[] context.color_buffer;
+    context.color_buffer = nullptr;
+
+    delete[] context.z_buffer;
+    context.z_buffer = nullptr;
+
     // clear all vaos.
     context.binded_vao = nullptr;
     for(auto &vao : context.vaos)  delete vao;
