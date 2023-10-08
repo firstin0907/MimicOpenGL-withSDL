@@ -64,7 +64,7 @@ bool clipping_line(VshaderOutput& p1, VshaderOutput& p2)
     return false;
 }
 
-void draw_point(const VshaderOutput& p, std::vector<ShadedFragment>* fragments)
+void draw_point(const VshaderOutput& p)
 {
     const int x_min =
         (int)round(p.pos.x) - context.drawing_options.point_radius + 1;
@@ -83,15 +83,15 @@ void draw_point(const VshaderOutput& p, std::vector<ShadedFragment>* fragments)
         {
             Fragment one = {x, y, (int)round(p.pos.z),
                 context.fshader_out_data_buf};
-            fragments->push_back(call_fragment_shader(&one));
+            ShadedFragment fragment = call_fragment_shader(&one);
+            perSampleOperation(&context, &fragment);
         }
     }
 }
 
 // Draw Line by using DDA Algorithm
 // https://www.tutorialspoint.com/computer_graphics/line_generation_algorithm.htm
-void draw_line_with_dda(const VshaderOutput& p1,
-    const VshaderOutput& p2, std::vector<ShadedFragment>* fragments)
+void draw_line_with_dda(const VshaderOutput& p1, const VshaderOutput& p2)
 {
     int dx = p2.pos.x - p1.pos.x;
     int dy = p2.pos.y - p1.pos.y;
@@ -124,13 +124,14 @@ void draw_line_with_dda(const VshaderOutput& p1,
         if(0 > one.y || one.y >= context.window_h) continue;
         if(0 > one.z || one.z > 1) continue;
 
-        fragments->push_back(call_fragment_shader(&one));
+        ShadedFragment fragment = call_fragment_shader(&one);
+        perSampleOperation(&context, &fragment);
     }
 }
 
 // Draw Triangle
 void draw_triangle(const VshaderOutput& p1, const VshaderOutput& p2,
-    const VshaderOutput& p3, std::vector<ShadedFragment>* fragments)
+    const VshaderOutput& p3)
 {
     const int xmin = std::max(0, (int)std::min({p1.pos.x, p2.pos.x, p3.pos.x}));
     const int xmax = std::min(context.window_w - 1,
@@ -174,7 +175,11 @@ void draw_triangle(const VshaderOutput& p1, const VshaderOutput& p2,
             one.z = mmath::interpolate(p1.pos.z, p2.pos.z, p3.pos.z, w_bary);
 
             if(0 <= one.z && one.z <= 1)
-                fragments->push_back(call_fragment_shader(&one));
+            {
+                ShadedFragment fragment = call_fragment_shader(&one);
+                perSampleOperation(&context, &fragment);
+            }
+                
         }
         
     }

@@ -38,8 +38,6 @@ struct Context
         color_t clear_color;
         bool    z_mode;
     } drawing_options;
-    
-    std::vector<ShadedFragment> fr;
 
     float* z_buffer = nullptr;
     int* color_buffer = nullptr;
@@ -80,16 +78,15 @@ bool vertex_post_processing_for_points(VshaderOutput &p);
 
 // per_sample_operator.cc
 extern int perSampleOperation(Context* context,
-    std::vector<ShadedFragment>* fragments);
+    ShadedFragment* fragment);
 
 // scan_converser.cc
 extern bool clipping_line(VshaderOutput& p1, VshaderOutput& p2);
-extern void draw_point(const VshaderOutput& p,
-    std::vector<ShadedFragment>* fragments);
+extern void draw_point(const VshaderOutput& p);
 extern void draw_line_with_dda(const VshaderOutput& p1,
-    const VshaderOutput& p2, std::vector<ShadedFragment>* fragments);
+    const VshaderOutput& p2);
 extern void draw_triangle(const VshaderOutput& p1, const VshaderOutput& p2,
-    const VshaderOutput& p3, std::vector<ShadedFragment>* fragments);
+    const VshaderOutput& p3);
 
 // fragment_processor.cc
 extern ShadedFragment call_fragment_shader(struct Fragment* fragment);

@@ -1,4 +1,5 @@
 #include <iostream>
+
 #include "mimic/include/mimicMath.hh"
 #include "mimic/include/mimic.hh"
 #include "src/include/SDL2/SDL.h"
@@ -279,6 +280,9 @@ int main(int argc, char* argv[])
 	float rad = 5;
 	int mouse_x, mouse_y;
 
+	Uint32 prev_time = 0;
+	int frame_cnt = 0;
+
 	float camera_h = 0;
     while(running)
     {
@@ -358,6 +362,12 @@ int main(int argc, char* argv[])
 
 		DrawArrays(0, 36, DRAW_TRIANGLES);
 		DrawFrame();
+
+		Uint32 curr_ticks = SDL_GetTicks();
+		std::cout << curr_ticks - prev_time << std::endl;
+
+		prev_time = curr_ticks;
+
     }
 
     TerminateMimicGL();

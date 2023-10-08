@@ -27,8 +27,13 @@ int StartMimicGL(int window_w, int window_h)
     context.window_w = window_w;
     context.window_h = window_h;
 
-    context.color_buffer = new int[1920 * 1080];
-    context.z_buffer = new float[1920 * 1080];
+    context.color_buffer = new int[window_w * window_h];
+    context.z_buffer = new float[window_w * window_h];
+
+    
+    std::fill(context.z_buffer, context.z_buffer + window_w * window_h, 100.0);
+    std::fill(context.color_buffer, context.color_buffer + window_w * window_h,
+        context.drawing_options.clear_color);
 
     context.drawing_options.point_radius = 1;
     context.drawing_options.clear_color = 0x333333FF; // light gray.
@@ -66,7 +71,7 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
 
             // No need to clipping 
             // Scan Conversion & Fragment Processing
-            draw_point(p1, &context.fr);
+            draw_point(p1);
         }
         break;
 
@@ -85,7 +90,7 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
             if(!clipping_line(p1, p2)) continue;
 
             // Scan Conversion & Fragment Processing
-            draw_line_with_dda(p1, p2, &context.fr);
+            draw_line_with_dda(p1, p2);
         }
         break;
     
@@ -104,7 +109,7 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
             // Clipping with respect to x, y, z coordinate.
             if(clipping_line(p1, p2))
                 // Scan Conversion & Fragment Processing
-                draw_line_with_dda(p1, p2, &context.fr);
+                draw_line_with_dda(p1, p2);
             
             // And work like DRAW_LINE_STRIP if there are more lines to be drawn
             if(number <= 2) break;
@@ -138,7 +143,7 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
                     if(!clipping_line(odd_vertex_dup, even_vertex)) continue;
                     
                     // Scan Conversion & Fragment Processing
-                    draw_line_with_dda(odd_vertex_dup, even_vertex, &context.fr);
+                    draw_line_with_dda(odd_vertex_dup, even_vertex);
                 }
                 else
                 {
@@ -151,7 +156,7 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
                     if(!clipping_line(odd_vertex, even_vertex_dup)) continue;
                     
                     // Scan Conversion & Fragment Processing
-                    draw_line_with_dda(odd_vertex, even_vertex_dup, &context.fr);
+                    draw_line_with_dda(odd_vertex, even_vertex_dup);
                 }
             }
             break;
@@ -181,9 +186,9 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
                 if(!clipping_line(p1, p2)) continue;
 
                 // Scan Conversion & Fragment Processing
-                draw_line_with_dda(p1, p2_dup, &context.fr);
-                draw_line_with_dda(p2, p3_dup, &context.fr);
-                draw_line_with_dda(p3, p1_dup, &context.fr);
+                draw_line_with_dda(p1, p2_dup);
+                draw_line_with_dda(p2, p3_dup);
+                draw_line_with_dda(p3, p1_dup);
             }
             break;
         }
@@ -210,7 +215,7 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
                 if(mmath::dot(polygon_normal, {0, 0, 1}) >= 0) continue;
 
                 // Scan Conversion & Fragment Processing
-                draw_triangle(p1, p2, p3, &context.fr);
+                draw_triangle(p1, p2, p3);
             }
             break;
         }
@@ -220,13 +225,26 @@ void DrawArrays(const uint32_t start, const uint32_t number, DrawingType type)
 
 int DrawFrame()
 {
-    // Per-sample Opeartions
-    perSampleOperation(&context, &context.fr);
-    context.fr.clear();
-    
-    SDL_RenderCopy(context.renderer, context.texture, NULL, NULL);
+    int* texture_pixels;
+    int pitch;
+    const int n_pixel = context.window_w * context.window_h;
 
+    if(SDL_LockTexture(context.texture, NULL, (void **)&texture_pixels, &pitch) < 0)
+    {
+        return -1;
+    }
+    std::copy(context.color_buffer, context.color_buffer + n_pixel,
+        texture_pixels);
+
+    SDL_UnlockTexture(context.texture);
+    SDL_RenderCopy(context.renderer, context.texture, NULL, NULL);
     SDL_RenderPresent(context.renderer);
+
+    std::fill(context.z_buffer, context.z_buffer + n_pixel, 100.0);
+    std::fill(context.color_buffer, context.color_buffer + n_pixel,
+        context.drawing_options.clear_color);
+
+        
 
     return 0;
 }
