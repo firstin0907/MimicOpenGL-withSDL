@@ -19,13 +19,14 @@ enum DrawingType
  * Conducts initializing.
  * Must be called before any other functions of this file is called.
  * 
- * \param window_w: The width of the window which is going to show
- *                  the rendered result.
- * \param window_h: The width of the window which is going to show
- *                  the rendered result.
+ * \param window_title: The title of the window which is going to show
+ *                      the rendered result.
+ * \param window_w: The width of the window.
+ * \param window_h: The width of the window.
  * \returns 0 if success, -1 if error.
 */
-extern int StartMimicGL(int window_w, int window_h);
+extern int StartMimicGL(const char* window_title,
+    int window_w, int window_h);
 
 /**
  * Draws the object based on VAO and VBO binded by bindVertexArray() and
