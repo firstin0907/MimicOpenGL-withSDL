@@ -76,10 +76,9 @@ void draw_point(const VshaderOutput& p)
     const int y_max =
         (int)round(p.pos.y) + context.drawing_options.point_radius - 1;
 
-    for(int x = std::max(x_min, 0); x < std::min(x_max, context.window_w); x++)
+    for(int x = std::max(x_min, 0); x < x_max && x < context.window_w; x++)
     {
-        for(int y = std::max(y_min, 0); y < std::min(y_max, context.window_h);
-            y++)
+        for(int y = std::max(y_min, 0); y < y_max && y < context.window_h; y++)
         {
             Fragment one = {x, y, (int)round(p.pos.z),
                 context.fshader_out_data_buf};
@@ -165,6 +164,9 @@ void draw_triangle(const VshaderOutput& p1, const VshaderOutput& p2,
                 (w_bary.x * p1.pos.w + w_bary.y * p2.pos.w + w_bary.z * p3.pos.w);
             
             Fragment one;
+            one.z = mmath::interpolate(p1.pos.z, p2.pos.z, p3.pos.z, w_bary);
+            if(one.z < 0 || one.z > 1) continue;
+            
             one.f_data = context.fshader_out_data_buf;
             for(int j = 0; j <= context.vshader_out_data_size; j++)
             {
@@ -172,13 +174,9 @@ void draw_triangle(const VshaderOutput& p1, const VshaderOutput& p2,
                     p1.data[j], p2.data[j], p3.data[j], perp_corr_bary);
             }
             one.x = x, one.y = y;
-            one.z = mmath::interpolate(p1.pos.z, p2.pos.z, p3.pos.z, w_bary);
-
-            if(0 <= one.z && one.z <= 1)
-            {
-                ShadedFragment fragment = call_fragment_shader(&one);
-                perSampleOperation(&context, &fragment);
-            }
+            
+            ShadedFragment fragment = call_fragment_shader(&one);
+            perSampleOperation(&context, &fragment);
                 
         }
         
