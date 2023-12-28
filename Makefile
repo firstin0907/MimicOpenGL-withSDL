@@ -12,6 +12,11 @@ all: $(OBJ_FILES)
 	g++ -I $(INCLUDE_DIR) -L src/lib -o main $(OBJ_FILES) -lmingw32 -lSDL2main -lSDL2
 	echo $(OBJ_FILES)
 
+$(OBJ_FILES): | $(BUILD_DIR)
+
+$(BUILD_DIR):
+	mkdir $(BUILD_DIR)
+
 $(BUILD_DIR)/main.o: main.cc
 	g++ -I $(INCLUDE_DIR) -c -o $(BUILD_DIR)/main.o main.cc
 	
