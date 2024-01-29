@@ -1,7 +1,6 @@
 # MimicOpenGL-withSDL
 The small toy 3D software rasterizer using SDL2 library.
-
-
+This project seems to be built well only on Windows yet.
 
 ## Getting start
 ### Build 🏗
@@ -36,9 +35,11 @@ The primitives, composed of vertices, are converted into fragments(pixel) in thi
 I plan to improve it more efficiently soon.
 
 ### Fragment Processing
-TBU
-### Per-sample Operations
+The fragments, created in Scan Conversion stage, are shaded in this stage, in the way which fragment shader describes.
+Like Vertex Processing stage, fragment shader is descripted by user and stored in `context` instance previously by user calling `void set_shaders(const uint32_t out_size, void (*vertex_shader)(float*[], mmath::Vec4<float>*, float[]), color_t (*fragment_shader)(struct Fragment*))` function.
 
+### Per-sample Operations
+Lastly, the shaded fragments are filtered by z-buffering, so that only the frontmost fragment are displayed at rendering window in this stage.
 
 ## Example
 ### Video(Link) 🎞
