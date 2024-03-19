@@ -2,3 +2,4 @@
 build
 *.o
 *.exe
+report.txt

@@ -42,6 +42,9 @@ struct Context
     float* z_buffer = nullptr;
     int* color_buffer = nullptr;
 
+    int frame_cnt;
+    time_t frame_time[16];
+
     int window_w, window_h;
 };
 

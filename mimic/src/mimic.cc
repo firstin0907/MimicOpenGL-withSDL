@@ -1,7 +1,12 @@
-#include <SDL2/SDL.h>
 #include "../include/mimic.hh"
-#include "../include/defs.hh"
+
+#include <SDL2/SDL.h>
+#include <time.h>
+
 #include <iostream>
+#include <fstream>
+
+#include "../include/defs.hh"
 
 Context context;
 
@@ -37,6 +42,9 @@ int StartMimicGL(const char* window_title, int window_w, int window_h)
 
     context.drawing_options.point_radius = 1;
     context.drawing_options.clear_color = 0x333333FF; // light gray.
+
+    for(time_t &i: context.frame_time) i = 0;
+    context.frame_cnt = 0;
 
     return 0;    
 }
@@ -244,7 +252,7 @@ int DrawFrame()
     std::fill(context.color_buffer, context.color_buffer + n_pixel,
         context.drawing_options.clear_color);
 
-        
+    context.frame_time[(context.frame_cnt++) % 16] = clock();
 
     return 0;
 }
@@ -295,5 +303,23 @@ int TerminateMimicGL()
     SDL_DestroyWindow(context.window);
 
     SDL_Quit();
+
+    std::ofstream report_file("report.txt");
+
+    if(0 < context.frame_cnt && context.frame_cnt < 16)
+    {
+        report_file << "Frame rate of last " << context.frame_cnt << " frames :"
+            << (context.frame_time[context.frame_cnt - 1]
+            - context.frame_time[0]) / context.frame_cnt << std::endl;
+    }
+    else
+    {
+        report_file << "Frame rate of last 16 frames :" 
+                << (context.frame_time[(context.frame_cnt - 1) % 16]
+                - context.frame_time[context.frame_cnt % 16]) / 16
+                << std::endl;
+    }
+
+
     return 0;
 }
