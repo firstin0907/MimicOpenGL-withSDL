@@ -87,6 +87,17 @@ color_t phong_fshader(struct Fragment* fragment)
     return (r << 24) | (g << 16) | (b << 8);
 }
 
+struct Box
+{
+	mmath::Mat4x4<float> m;
+	Box(float x, float y, float z)
+	{
+		m = mmath::translate({x, y, z}) * mmath::scale({0.4, 0.4, 0.4});
+	}
+};
+
+#include <vector>
+
 int main(int argc, char* argv[])
 {
     StartMimicGL("Mimic example", WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -253,6 +264,11 @@ int main(int argc, char* argv[])
          -1.0,  0.0,  0.0,  0.0, 0.0, .0, // v7	
 	};
 
+	std::vector<Box> boxes;
+	srand(12412);
+	for(int i = 0; i < 10; i++) boxes.emplace_back((rand() % 11 - 5) * 0.1, (rand() % 11 - 5) * 0.1, (rand() % 11 - 5) * 0.1);
+
+
 	struct VAO* vao = generateVertexArray();
 	bindVertexArray(vao);
 
@@ -360,11 +376,16 @@ int main(int argc, char* argv[])
 		bindBuffer(box_vbo);
 		set_shaders(6, phong_vshader, phong_fshader);
 
-		DrawArrays(0, 36, DRAW_TRIANGLES);
+		for(auto& i : boxes)
+		{
+			MVP = P * V * i.m;
+			DrawArrays(0, 36, DRAW_TRIANGLES);
+		}
 		DrawFrame();
 
+
 		Uint32 curr_ticks = SDL_GetTicks();
-		std::cout << curr_ticks - prev_time << std::endl;
+		//std::cout << curr_ticks - prev_time << std::endl;
 
 		prev_time = curr_ticks;
 
