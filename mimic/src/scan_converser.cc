@@ -144,41 +144,80 @@ void draw_triangle(const VshaderOutput& p1, const VshaderOutput& p2,
     const mmath::Vec2<float> w_pos2 = {p2.pos.x, p2.pos.y};
     const mmath::Vec2<float> w_pos3 = {p3.pos.x, p3.pos.y};
 
-    for(int x = xmin; x <= xmax; x++)
-    {
-        for(int y = ymin; y <= ymax; y++)
-        {
-            mmath::Vec2<float> fragment_pos = {x, y};
-            float t1 = -mmath::cross(w_pos3 - w_pos2, fragment_pos - w_pos2);
-            float t2 = -mmath::cross(w_pos1 - w_pos3, fragment_pos - w_pos3);
-            float t3 = -mmath::cross(w_pos2 - w_pos1, fragment_pos - w_pos1);
+    
+    mmath::Vec2<float> p_pos1 = {p1.pos.x, p1.pos.y};
+    mmath::Vec2<float> p_pos2 = {p2.pos.x, p2.pos.y};
+    mmath::Vec2<float> p_pos3 = {p3.pos.x, p3.pos.y};
 
-            if(t1 < 0 || t2 < 0 || t3 < 0) continue;
-                        
-            // barycentric coordinate in window coordinate system.
-            auto w_bary = mmath::Vec3<float>(t1, t2, t3) / (t1 + t2 + t3);
-            
-            // barycentric coordinate in clip space(namely, world space)
-            auto perp_corr_bary = mmath::Vec3<float>(
-                w_bary.x * p1.pos.w, w_bary.y * p2.pos.w, w_bary.z * p3.pos.w) /
-                (w_bary.x * p1.pos.w + w_bary.y * p2.pos.w + w_bary.z * p3.pos.w);
-            
-            Fragment one;
-            one.z = mmath::interpolate(p1.pos.z, p2.pos.z, p3.pos.z, w_bary);
-            if(one.z < 0 || one.z > 1) continue;
-            
-            one.f_data = context.fshader_out_data_buf;
-            for(int j = 0; j <= context.vshader_out_data_size; j++)
-            {
-                one.f_data[j] = mmath::interpolate(
-                    p1.data[j], p2.data[j], p3.data[j], perp_corr_bary);
-            }
-            one.x = x, one.y = y;
-            
-            ShadedFragment fragment = call_fragment_shader(&one);
-            perSampleOperation(&context, &fragment);
-                
-        }
+    if(p_pos1.x > p_pos2.x) std::swap(p_pos1, p_pos2);
+    if(p_pos1.x > p_pos3.x) std::swap(p_pos1, p_pos3);
+    if(p_pos2.x > p_pos3.x) std::swap(p_pos2, p_pos3);
+
+
+    auto draw_fragment = [&](int x, int y)
+    {
+        mmath::Vec2<float> fragment_pos = {x, y};
+        float t1 = -mmath::cross(w_pos3 - w_pos2, fragment_pos - w_pos2);
+        float t2 = -mmath::cross(w_pos1 - w_pos3, fragment_pos - w_pos3);
+        float t3 = -mmath::cross(w_pos2 - w_pos1, fragment_pos - w_pos1);
+
+        if(t1 < 0 || t2 < 0 || t3 < 0) return;
+                    
+        // barycentric coordinate in window coordinate system.
+        auto w_bary = mmath::Vec3<float>(t1, t2, t3) / (t1 + t2 + t3);
         
+        // barycentric coordinate in clip space(namely, world space)
+        auto perp_corr_bary = mmath::Vec3<float>(
+            w_bary.x * p1.pos.w, w_bary.y * p2.pos.w, w_bary.z * p3.pos.w) /
+            (w_bary.x * p1.pos.w + w_bary.y * p2.pos.w + w_bary.z * p3.pos.w);
+        
+        Fragment one;
+        one.z = mmath::interpolate(p1.pos.z, p2.pos.z, p3.pos.z, w_bary);
+        if(one.z < 0 || one.z > 1) return;
+        
+        one.f_data = context.fshader_out_data_buf;
+        for(int j = 0; j <= context.vshader_out_data_size; j++)
+        {
+            one.f_data[j] = mmath::interpolate(
+                p1.data[j], p2.data[j], p3.data[j], perp_corr_bary);
+        }
+        one.x = x, one.y = y;
+        
+        ShadedFragment fragment = call_fragment_shader(&one);
+        perSampleOperation(&context, &fragment);
+    };
+
+    float left = p_pos1.y, right = p_pos1.y;
+
+    float left_dy = (p_pos3.y - p_pos1.y) / (p_pos3.x - p_pos1.x);
+    float right_dy = (p_pos2.y - p_pos1.y) / (p_pos2.x - p_pos1.x);
+
+    for(int x = p_pos1.x; x < p_pos2.x; x++)
+    {
+        left = p_pos1.y + (x - p_pos1.x) * left_dy;
+        right = p_pos1.y + (x - p_pos1.x) * right_dy;
+
+        if(left > right) std::swap(left, right);
+        right = std::max((int)right, ymax);
+
+        for(int y = std::max(ymin, (int)left); y <= right; y++)
+        { 
+            draw_fragment(x, y);
+        }
+    }
+    
+    right_dy = (p_pos3.y - p_pos2.y) / (p_pos3.x - p_pos2.x);
+    for(int x = p_pos2.x; x < p_pos3.x; x++)
+    {
+        left = p_pos1.y + (x - p_pos1.x) * left_dy;
+        right = p_pos2.y + (x - p_pos2.x) * right_dy;
+
+        if(left > right) std::swap(left, right);
+        right = std::max((int)right, ymax);
+
+        for(int y = std::max(ymin, (int)left); y <= right; y++)
+        {
+            draw_fragment(x, y);
+        }
     }
 }
