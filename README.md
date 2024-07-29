@@ -14,7 +14,7 @@ By modifying main.cc source file and rebuilding project, you can change what is 
 
 
 ## Brief Structure of Rendering Pipeline
-Rendering Pipeline, except for per-sample operation, is mimicked by calling `DrawArray(const uint32_t start, const uint32_t number, DrawingType type)` function in [mimic/include/mimic.hh](/mimic/include/mimic.hh), with data of `context` instance which is set through other function calls before calling this function.
+The whole rendering pipeline, from vertex processing stage to per-sample operation stage, is mimicked by calling `DrawArray(const uint32_t start, const uint32_t number, DrawingType type)` function in [mimic/include/mimic.hh](/mimic/include/mimic.hh), with data of `context` instance(global) which is set through other function calls before calling this function.
 
 Behavior of this function varies slightly with the `type` parameter, but overall behavior is almost similar.
 
