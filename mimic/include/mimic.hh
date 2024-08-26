@@ -109,6 +109,11 @@ extern struct VAO* generateVertexArray();
 extern struct VBO* generateBuffer();
 
 /**
+ * Free given vao.
+*/
+extern void deleteVertexArray(struct VAO* vao);
+
+/**
  * Free given vbo and its buffer.
 */
 extern void deleteBuffer(struct VBO* vbo);

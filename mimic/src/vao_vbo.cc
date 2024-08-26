@@ -47,6 +47,11 @@ VAO* generateVertexArray()
     return vao;
 }
 
+void deleteVertexArray(VAO* vao)
+{
+    delete vao;
+}
+
 // Create VBO and returns created VBO's address.
 VBO* generateBuffer()
 {

@@ -284,7 +284,7 @@ int TerminateMimicGL()
 
     // clear all vaos.
     context.binded_vao = nullptr;
-    for(auto &vao : context.vaos)  delete vao;
+    for(auto &vao : context.vaos) deleteVertexArray(vao);
     context.vaos.clear();
     
     // clear all vbos.
