@@ -80,7 +80,7 @@ bool vertex_post_processing_for_lines(VshaderOutput &p1, VshaderOutput& p2);
 bool vertex_post_processing_for_points(VshaderOutput &p);
 
 // per_sample_operator.cc
-extern int perSampleOperation(Context* context,
+extern void perSampleOperation(Context* context,
     ShadedFragment* fragment);
 
 // scan_converser.cc

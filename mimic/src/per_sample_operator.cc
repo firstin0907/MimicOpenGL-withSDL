@@ -21,7 +21,7 @@ void appendFragment(float* z_buffer, color_t* color_buffer,
     }
 }
 
-int perSampleOperation(Context* context, ShadedFragment* fragment)
+void perSampleOperation(Context* context, ShadedFragment* fragment)
 {
     const int index = fragment->x + fragment->y * context->window_w;
     if(context->z_buffer[index] > fragment->z)

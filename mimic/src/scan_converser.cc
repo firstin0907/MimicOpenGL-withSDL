@@ -156,7 +156,7 @@ void draw_triangle(const VshaderOutput& p1, const VshaderOutput& p2,
 
     auto draw_fragment = [&](int x, int y)
     {
-        mmath::Vec2<float> fragment_pos = {x, y};
+        mmath::Vec2<float> fragment_pos = {(float)x, (float)y};
         float t1 = -mmath::cross(w_pos3 - w_pos2, fragment_pos - w_pos2);
         float t2 = -mmath::cross(w_pos1 - w_pos3, fragment_pos - w_pos3);
         float t3 = -mmath::cross(w_pos2 - w_pos1, fragment_pos - w_pos1);
